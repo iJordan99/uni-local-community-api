@@ -1,0 +1,33 @@
+{
+  "name": "file-sharing-api",
+  "version": "1.0.0",
+  "description": "API for a local community",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "db:migrate": "npx sequelize-cli db:migrate",
+    "db:seed": "npx sequelize-cli db:seed:all"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.coventry.ac.uk/6003CEM/Local-Community-API.git"
+  },
+  "author": "Jordan Smith",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.1.0",
+    "jsonschema": "^1.4.1",
+    "koa": "^2.13.0",
+    "koa-bodyparser": "^4.3.0",
+    "koa-passport": "^5.0.0",
+    "koa-router": "^9.4.0",
+    "mysql2": "^2.3.3",
+    "passport-hmac": "^1.0.4",
+    "passport-http": "^0.3.0",
+    "sequelize": "^6.25.3",
+    "sqlite3": "^5.1.2"
+  },
+  "devDependencies": {
+    "sequelize-cli": "^6.5.1"
+  }
+}

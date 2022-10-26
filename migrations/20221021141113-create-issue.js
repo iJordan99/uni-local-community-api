@@ -11,17 +11,20 @@ module.exports = {
       },
       issueName: {
         allowNull: false,
-        type: Sequelize.STRING,
+        type: Sequelize.STRING(30),
         unique: true
       },
       location: {
+        type: Sequelize.STRING(100)
+      },
+      description: {
         type: Sequelize.STRING
       },
       photo: {
         type: Sequelize.STRING
       },
       status: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING(10)
       },
       createdAt: {
         allowNull: false,
@@ -30,6 +33,10 @@ module.exports = {
       updatedAt: {
         allowNull: false,
         type: Sequelize.DATE
+      },
+      owner: {
+        allowNull: false,
+        type: Sequelize.STRING(25),
       },
       userID: {
         allowNullL: false,

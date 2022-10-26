@@ -16,10 +16,13 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   Issue.init({
-    issueName: DataTypes.STRING, 
-    location: DataTypes.STRING,
+    issueName: DataTypes.STRING(30), 
+    location: DataTypes.STRING(100),
     photo: DataTypes.STRING,
-    status: DataTypes.STRING
+    status: DataTypes.STRING(10),
+    description: DataTypes.STRING,
+    userID: DataTypes.INTEGER,
+    owner: DataTypes.STRING(25),
   }, {
     sequelize,
     modelName: 'Issue',

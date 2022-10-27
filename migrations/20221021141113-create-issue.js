@@ -12,13 +12,13 @@ module.exports = {
       issueName: {
         allowNull: false,
         type: Sequelize.STRING(30),
-        unique: true
+        unique: false,
       },
       location: {
         type: Sequelize.STRING(100)
       },
       description: {
-        type: Sequelize.STRING
+        type: Sequelize.TEXT
       },
       photo: {
         type: Sequelize.STRING

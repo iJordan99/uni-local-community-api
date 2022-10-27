@@ -1,5 +1,8 @@
 const koa = require('koa');
+const cors = require('@koa/cors')
 const app = new koa();
+
+app.use(cors());
 
 const special = require('./routes/special.js');
 const user = require('./routes/user.js');

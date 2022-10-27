@@ -1,0 +1,40 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema",
+	"definitions": {
+		"issue": {
+			"id": "/user",
+			"title": "User",
+			"description": "User registration data",
+			"type": "object",
+			"properties": {
+				"firstName": {
+					"description": "Users first name",
+					"type": "string",
+					"maxLength": 20
+				},
+        "lastName": {
+          "description": "Users last name",
+          "type": "string",
+					"maxLength": 20
+        },
+        "username": {
+          "description": "Username",
+          "type": "string",
+          "minLength": 3
+        },
+        "email": {
+          "description": "User email address",
+          "type": "string",
+          "format": "email"
+        },
+        "password": {
+          "description": "User password",
+          "type": "string",
+          "minLength": 5
+        }
+			},
+			"required": ["firstName", "lastName", "username", "email", "password"],
+			"additionalProperties": false
+		}
+	}
+}

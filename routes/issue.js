@@ -9,17 +9,17 @@ const _issue = require('../models/helpers/issue.js');
 const _role = require('../models/helpers/role.js');
 const _user = require('../models/helpers/user.js');
 
-const { validateIssue } = require('../controllers/validation.js');
+const { validateIssue, validateIssueStatus } = require('../controllers/validation.js');
 
 router.get('/:id([0-9]{1,})', auth, issueById);
-router.post('/:id([0-9]{1,})', bodyParser(), auth, updateStatus);
+router.post('/:id([0-9]{1,})', auth, bodyParser(), validateIssueStatus, updateStatus);
 
 
 router.post('/', auth, bodyParser(), validateIssue ,createIssue);
 router.get('/:username', auth, getByUser);
 router.get('/status/:status', auth, getByStatus);
 
-//admins should be able to post to an endpoint (flag as addressed)
+
 //if user views issues and sees status as addressed they should see a URI to apporve the fix (set status to fixed)
 //route handler to list all issues -  admin only/
 

@@ -2,6 +2,9 @@ const { Validator, ValidationError } = require('jsonschema');
 
 const issueSchema = require('../schemas/issue.json').definitions.issue;
 const userSchema = require('../schemas/user.json').definitions.user;
+const userUpdateSchema = require('../schemas/user.json').definitions.userUpdate;
+const validateIssueStatus = require('../schemas/issue.json').definitions.statusUpdate;
+
 
 const validator = (schema, resource) => {
   const validator = new Validator();
@@ -32,5 +35,6 @@ const validator = (schema, resource) => {
 
 exports.validateIssue = validator(issueSchema, 'issue');
 exports.validateUser = validator(userSchema, 'user');
-exports.validateUserUpdate = validator(userSchema, 'userUpdate');
+exports.validateUserUpdate = validator(userUpdateSchema, 'userUpdate');
+exports.validateIssueStatus = validator(validateIssueStatus, 'statusUpdate');
 

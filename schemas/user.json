@@ -37,7 +37,7 @@
 			"additionalProperties": false
 		},
     "userUpdate": {
-      "id": "/user",
+      "id": "#userUpdate",
       "title": "User update data",
       "description": "Data a user can update",
       "type": "object",

@@ -29,6 +29,21 @@
 			},
 			"required": ["issueName", "location", "description"],
 			"additionalProperties": false
+		},
+		"statusUpdate": {
+			"id": "#statusUpdate",
+			"title": "Issue",
+			"description": "An issue within the local community",
+			"type": "object",
+			"properties": {
+				"status": {
+					"description": "status of issue",
+					"type": "string",
+					"enum": ["flagged", "new"]
+				}
+			},
+			"required": ["status"],
+			"additionalProperties": false
 		}
 	}
 }

@@ -34,7 +34,7 @@ module.exports = {
         allowNull: false,
         type: Sequelize.DATE
       },
-      owner: {
+      reportedBy: {
         allowNull: false,
         type: Sequelize.STRING(25),
       },

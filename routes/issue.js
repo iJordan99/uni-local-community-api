@@ -2,63 +2,101 @@ const Router = require('koa-router');
 const bodyParser = require('koa-bodyparser');
 const router = Router({prefix: '/api/v1/issue'});
 const auth = require('../controllers/auth.js');
-const { sequelize,Issue,User} = require('../models');
+
+const can = require('../permissions/issue.js');
+
+const _issue = require('../models/helpers/issue.js');
+const _role = require('../models/helpers/role.js');
+const _user = require('../models/helpers/user.js');
 
 const { validateIssue } = require('../controllers/validation.js');
 
+router.get('/:id([0-9]{1,})', auth, issueById);
+
 router.post('/', auth, bodyParser(), validateIssue ,createIssue);
-router.get('/:username', getByUser);
+router.get('/:username', auth, getByUser);
+router.get('/status/:status', auth, getByStatus);
 
+//admins should be able to post to an endpoint (flag as addressed)
+//if user views issues and sees status as addressed they should see a URI to apporve the fix (set status to fixed)
+//route handler to list all issues -  admin only/
 
-async function createIssue(ctx){
+async function getByStatus(ctx){
+  //make this dynamic 
+  const host = 'https://disneysummer-basilhazard-3000.codio-box.uk';
+  const reqUser = ctx.state.user;
+  
+  const issues = await _issue.getByStatus(ctx.params.status);
+  const userRole = await _role.getRole(reqUser.roleID);  
+  const permission = can.getByStatus(userRole);
 
-  const body = ctx.request.body;
-  const user = ctx.state.user;
-  const create = await Issue.create({
-    issueName: body.issueName ,
-    location: body.location,
-    description: body.description,
-    photo: body.photo,
-    status: 'new',
-    owner: user.username,
-    userID: user.id,    
-  });
-  ctx.status = 200;
+  if(!permission.granted){
+    ctx.status = 403;
+  } else {
+    issues.map((issue) => {
+      const date = new Date(issue.createdAt).toLocaleDateString();
+      issue.createdAt = date;
+      issue.URI = `${host}/api/v1/issue/${issue.id}`
+    });
+
+    ctx.body = issues;
+    ctx.status = 200;
+  }
 }
 
+async function issueById(ctx){
+  const reqUser = ctx.state.user;
+  const userRole = await _role.getRole(reqUser.roleID);  
+  const permission = can.getById(userRole);
 
+  if(!permission.granted){
+    ctx.status = 403;
+  } else {
+    const issue = await _issue.getById(ctx.params.id)  
+    const date = new Date(issue.createdAt).toLocaleDateString();
+    issue.createdAt = date;
+    ctx.body = issue;
+    ctx.status = 200;
+  }
+}
+
+async function createIssue(ctx){
+  const data = ctx.request.body;
+  const user = ctx.state.user;
+
+  const userRole = await _role.getRole(user.roleID)
+
+  const permission = can.createIssue(userRole);
+  
+  if(!permission.granted){
+    ctx.status = 403;
+  } else {
+    _issue.create(data,user);
+    ctx.status = 200;
+  }
+}
 
 async function getByUser(ctx){
-  const username = ctx.params.username;
-  //find user
-  const user = await User.findAll({
-    where: {
-      username: username
-    },
-    raw: true,
-    nest: true
-  });
 
-  try{
-    //if user exists set id
-    const userID = user[0].id;
-    //get issues by user if any
-    const issues = await Issue.findAll({
-      where: {
-        userID: userID
-      },
-      attributes: {exclude: ['password']},
-    });
-    
-    if(issues.length){
-      ctx.body = issues;
+  const username = ctx.params.username;
+  const user = await _user.findByUsername(username);
+  
+  const data = await _issue.findAllByUser(user.id);
+
+  const requesterRole = await _role.getRole(user.roleID);
+  const requester = await _user.findByUsername(ctx.state.user.username)
+
+  const permission = can.getByUser(requester.id,requesterRole, data[0]);  
+
+  if(!permission.granted){
+    ctx.status = 403;
+  } else {
+    if(data){
+      ctx.body = data;
       ctx.status = 200;
     } else {
       ctx.status = 404;
     }
-
-  } catch { 
-    //error handling here
   }
 }
 

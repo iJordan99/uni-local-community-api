@@ -31,7 +31,8 @@ async function createUser(ctx){
     lastName: body.lastName,
     username: body.username,
     email: body.email,
-    password: body.password
+    password: body.password,
+    roleID: 1
   });
 
   ctx.status = 200;

@@ -11,7 +11,7 @@ const _user = require('../models/helpers/user.js');
 
 const { validateIssue, validateIssueStatus } = require('../controllers/validation.js');
 
-router.get('/:id([0-9]{1,})', auth, issueById);
+router.get('/:id([0-9]{1,})', auth, bodyParser() ,issueById);
 router.post('/:id([0-9]{1,})', auth, bodyParser(), validateIssueStatus, updateStatus);
 
 
@@ -27,7 +27,7 @@ async function updateStatus(ctx){
   const issueID = ctx.params.id;
   const data = ctx.request.body;
   let requester = ctx.state.user;
-  requester = await _role.getRole(requester.roleID);
+  requester = await _role.getRole(requester.RoleId);
 
   const permission = can.updateStatus(requester);
   const issue = _issue.getById(issueID);
@@ -47,7 +47,7 @@ async function getByStatus(ctx){
   let requester = ctx.state.user;
   
   const issues = await _issue.getByStatus(ctx.params.status);
-  requester = await _role.getRole(requester.roleID);  
+  requester = await _role.getRole(requester.RoleId);  
   const permission = can.getByStatus(requester);
 
   if(!permission.granted){
@@ -64,9 +64,10 @@ async function getByStatus(ctx){
   }
 }
 
-async function issueById(ctx){
+async function issueById(ctx){ 
   let requester = ctx.state.user;
-  requester = await _role.getRole(requester.roleID);  
+  requester = await _role.getRole(requester.RoleId);  
+
   const permission = can.getById(requester);
 
   if(!permission.granted){
@@ -89,13 +90,12 @@ async function createIssue(ctx){
 }
 
 async function getByUser(ctx){
-
   const username = ctx.params.username;
   const user = await _user.findByUsername(username);
   
   const data = await _issue.findAllByUser(user.id);
 
-  const requesterRole = await _role.getRole(user.roleID);
+  const requesterRole = await _role.getRole(user.RoleId);
   const requester = await _user.findByUsername(ctx.state.user.username)
 
   const permission = can.getByUser(requester.id,requesterRole, data[0]);  

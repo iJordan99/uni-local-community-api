@@ -33,10 +33,6 @@ module.exports = (sequelize, DataTypes) => {
       set(value){
         this.setDataValue('password', bcrypt.hashSync(value,10));
       },
-    },
-    roleID: {
-      type: DataTypes.INTEGER,
-      allowNull: false
     }
   }, {
     sequelize,

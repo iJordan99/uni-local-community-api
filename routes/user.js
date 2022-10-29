@@ -1,20 +1,19 @@
 const Router = require('koa-router');
 const bodyParser = require('koa-bodyparser');
-const router = Router({prefix: '/api/v1/user'});
+const router = Router({prefix: '/api/v1/users'});
 const auth = require('../controllers/auth.js');
 
-const { sequelize, User } = require('../models');
+const _user = require('../models/helpers/user.js');
 const { validateUser, validateUserUpdate } = require('../controllers/validation.js');
 
 router.get('/', auth ,getAll);
 router.post('/', bodyParser(), validateUser, createUser);
-router.put('/:username', auth, bodyParser(), validateUserUpdate, updateUser);
-router.del('/:username', auth, deleteUser);
+router.put('/', auth, bodyParser(), validateUserUpdate, updateUser);
+router.del('/', auth, deleteUser);
 
 async function getAll(ctx){
-  const users = await User.findAll({
-    attributes: {exclude: ['password']}
-  });
+  let attributes = ['password'];
+  const users = await _user.findWithout(attributes);
 
   if(users.length){
     ctx.body = users;
@@ -25,54 +24,20 @@ async function getAll(ctx){
 
 async function createUser(ctx){
   const body = ctx.request.body;
-  
-  const create = await User.create({
-    firstName: body.firstName,
-    lastName: body.lastName,
-    username: body.username,
-    email: body.email,
-    password: body.password,
-    roleID: 1
-  });
-
+  await _user.create(body);
   ctx.status = 200;
 }
 
 async function updateUser(ctx){
   const body = ctx.request.body;
-  const user = await User.findOne({
-    attributes: {exclude: ['password']},
-    where: {
-      username: ctx.params.username
-    },
-    raw: true,
-    nest: true
-  });
-
-  User.update({ password: body.password, email: body.email, username: body.username},
-    { where: { id: user.id }}
-  );
-
+  let user = ctx.state.user;
+  await _user.update(user,body);
   ctx.status = 200;
 }
 
 async function deleteUser(ctx){
-  const user = await User.findOne({
-    where: {
-      username: ctx.params.username
-    },
-    raw: true,
-    nest: true
-  });
-
-  User.destroy({
-    where: {
-      id: user.id
-    }
-  });
-
-  console.log(`${user.username} deleted \n ${user}`);
-
+  let user = ctx.state.user;
+  await _user.delete(user);
   ctx.status = 200;
 }
 

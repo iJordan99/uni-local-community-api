@@ -17,7 +17,6 @@ module.exports = (sequelize, DataTypes) => {
     status: DataTypes.STRING(10),
     description: DataTypes.TEXT,
     userID: DataTypes.INTEGER,
-    reportedBy: DataTypes.STRING(25),
   }, {
     sequelize,
     modelName: 'Issue',

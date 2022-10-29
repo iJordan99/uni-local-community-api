@@ -34,10 +34,6 @@ module.exports = {
         allowNull: false,
         type: Sequelize.DATE
       },
-      reportedBy: {
-        allowNull: false,
-        type: Sequelize.STRING(25),
-      },
       userID: {
         allowNullL: false,
         type: Sequelize.INTEGER,

@@ -8,7 +8,9 @@ const getRole = async (roleID) => {
     raw: true,
     nest: true,
   });
-}
+};
+
 
 
 module.exports.getRole = getRole;
+

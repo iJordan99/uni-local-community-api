@@ -12,6 +12,8 @@ const _user = require('../models/helpers/user.js');
 const { validateIssue } = require('../controllers/validation.js');
 
 router.get('/:id([0-9]{1,})', auth, issueById);
+router.post('/:id([0-9]{1,})', bodyParser(), auth, updateStatus);
+
 
 router.post('/', auth, bodyParser(), validateIssue ,createIssue);
 router.get('/:username', auth, getByUser);
@@ -21,14 +23,32 @@ router.get('/status/:status', auth, getByStatus);
 //if user views issues and sees status as addressed they should see a URI to apporve the fix (set status to fixed)
 //route handler to list all issues -  admin only/
 
+async function updateStatus(ctx){
+  const issueID = ctx.params.id;
+  const data = ctx.request.body;
+  let requester = ctx.state.user;
+  requester = await _role.getRole(requester.roleID);
+
+  const permission = can.updateStatus(requester);
+  const issue = _issue.getById(issueID);
+
+  if(!permission.granted){
+    ctx.status = 403;
+  } else {
+    await _issue.updateStatus(issueID, data);
+    ctx.status = 200;
+  }
+}
+
+
 async function getByStatus(ctx){
   //make this dynamic 
   const host = 'https://disneysummer-basilhazard-3000.codio-box.uk';
-  const reqUser = ctx.state.user;
+  let requester = ctx.state.user;
   
   const issues = await _issue.getByStatus(ctx.params.status);
-  const userRole = await _role.getRole(reqUser.roleID);  
-  const permission = can.getByStatus(userRole);
+  requester = await _role.getRole(requester.roleID);  
+  const permission = can.getByStatus(requester);
 
   if(!permission.granted){
     ctx.status = 403;
@@ -45,9 +65,9 @@ async function getByStatus(ctx){
 }
 
 async function issueById(ctx){
-  const reqUser = ctx.state.user;
-  const userRole = await _role.getRole(reqUser.roleID);  
-  const permission = can.getById(userRole);
+  let requester = ctx.state.user;
+  requester = await _role.getRole(requester.roleID);  
+  const permission = can.getById(requester);
 
   if(!permission.granted){
     ctx.status = 403;
@@ -62,18 +82,10 @@ async function issueById(ctx){
 
 async function createIssue(ctx){
   const data = ctx.request.body;
-  const user = ctx.state.user;
-
-  const userRole = await _role.getRole(user.roleID)
-
-  const permission = can.createIssue(userRole);
-  
-  if(!permission.granted){
-    ctx.status = 403;
-  } else {
-    _issue.create(data,user);
-    ctx.status = 200;
-  }
+  let user = ctx.state.user;
+  user = await _user.findByUsername(user.username)
+  _issue.create(data,user);
+  ctx.status = 200;
 }
 
 async function getByUser(ctx){

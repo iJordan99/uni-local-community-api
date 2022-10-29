@@ -46,7 +46,14 @@ const findAllByUser = async (userID) => {
   });
 };
 
+const updateStatus = async (issue, data) => {
+  return Issue.update({ status: data.status },  
+    {where: { id: issue}}
+  );
+};
+
 module.exports.getByStatus = getByStatus;
 module.exports.getById = getById;
 module.exports.create = create;
 module.exports.findAllByUser = findAllByUser;
+module.exports.updateStatus = updateStatus;

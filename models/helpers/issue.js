@@ -19,7 +19,7 @@ const getById = async (id) => {
     },
     raw: true,
     nest: true,
-    attributes: {exclude: ['updatedAt', 'id', 'UserId', 'userID']}
+    attributes: {exclude: ['updatedAt', 'id', 'userID']}
   });
 };
 
@@ -40,14 +40,14 @@ const findAllByUser = async (userID) => {
     where: {
       userID: userID
     },
-    attributes: {exclude: ['password']},
+    attributes: {exclude: ['password', 'UserId', 'userID']},
     raw: true,
     nest: true
   });
 };
 
 const updateStatus = async (issue, data) => {
-  return Issue.update({ status: data.status },  
+  return Issue.update({ status: data.status, updatedAt: new Date() },  
     {where: { id: issue}}
   );
 };

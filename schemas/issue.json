@@ -39,7 +39,7 @@
 				"status": {
 					"description": "status of issue",
 					"type": "string",
-					"enum": ["flagged", "new"]
+					"enum": ["flagged", "new", "addressed", "fixed"]
 				}
 			},
 			"required": ["status"],

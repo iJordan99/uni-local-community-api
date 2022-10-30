@@ -17,9 +17,10 @@ exports.updateStatus = (requester) => {
     .on('Issues')
 }
 
-exports.getById = (requester) => {
+exports.getById = (requester,data) => {
   return ac
     .can(requester.role)
+    .context({requester: requester.id, owner: data.UserId})
     .execute('read')
     .sync()
     .on('Issues')

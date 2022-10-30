@@ -11,18 +11,39 @@ const _user = require('../models/helpers/user.js');
 
 const { validateIssue, validateIssueStatus } = require('../controllers/validation.js');
 
+//rework these routes ? should posting to the /:id update the status or the issue itself
 router.get('/:id([0-9]{1,})', auth, bodyParser() ,issueById);
 router.post('/:id([0-9]{1,})', auth, bodyParser(), validateIssueStatus, updateStatus);
 
-
+router.get('/', auth, myIssues);
 router.post('/', auth, bodyParser(), validateIssue ,createIssue);
+
 router.get('/:username', auth, getByUser);
 router.get('/status/:status', auth, getByStatus);
 
 //if user views issues and sees status as addressed they should see a URI to apporve the fix (set status to fixed)
-//route handler to list all issues -  admin only/
+
+async function myIssues(ctx){
+  let requester = ctx.state.user;
+  const issues = await _issue.findAllByUser(requester.id);
+  const host = 'https://disneysummer-basilhazard-3000.codio-box.uk';
+  issues.map((issue) => {
+    let date = new Date(issue.createdAt).toLocaleDateString();
+    issue.createdAt = date;
+    date = new Date(issue.updatedAt).toLocaleDateString();
+    issue.updatedAt = date;
+
+    if(issue.status === 'addressed'){
+      issue.uri = `${host}/api/v1/issue/${issue.id}`  
+    }
+  });
+
+  ctx.body = issues;
+  ctx.sta = 200;
+}
 
 async function updateStatus(ctx){
+  //only admin should be able to update status to flagged,addressed and new - allow users to set fixed
   const issueID = ctx.params.id;
   const data = ctx.request.body;
   let requester = ctx.state.user;
@@ -65,14 +86,16 @@ async function getByStatus(ctx){
 
 async function issueById(ctx){ 
   let requester = ctx.state.user;
-  requester = await _role.getRole(requester.RoleId);  
+  let requesterRole = await _role.getRole(requester.RoleId);  
+  requester.role = requesterRole.role;
 
-  const permission = can.getById(requester);
+  const issue = await _issue.getById(ctx.params.id)  
 
+  const permission = can.getById(requester, issue);
+  
   if(!permission.granted){
     ctx.status = 403;
   } else {
-    const issue = await _issue.getById(ctx.params.id)  
     const date = new Date(issue.createdAt).toLocaleDateString();
     issue.createdAt = date;
     ctx.body = issue;

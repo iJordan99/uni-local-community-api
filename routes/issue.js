@@ -19,7 +19,6 @@ router.post('/', auth, bodyParser(), validateIssue ,createIssue);
 router.get('/:username', auth, getByUser);
 router.get('/status/:status', auth, getByStatus);
 
-
 //if user views issues and sees status as addressed they should see a URI to apporve the fix (set status to fixed)
 //route handler to list all issues -  admin only/
 
@@ -90,15 +89,15 @@ async function createIssue(ctx){
 }
 
 async function getByUser(ctx){
-  const username = ctx.params.username;
-  const user = await _user.findByUsername(username);
+  let requester = ctx.state.user;
+  let requesterRole = await _role.getRole(requester.RoleId);
+  requester.role = requesterRole.role;
   
+  let user = ctx.params.username; 
+  user = await _user.findByUsername(user);
+
+  const permission = can.getByUser(requester, user)
   const data = await _issue.findAllByUser(user.id);
-
-  const requesterRole = await _role.getRole(user.RoleId);
-  const requester = await _user.findByUsername(ctx.state.user.username)
-
-  const permission = can.getByUser(requester.id,requesterRole, data[0]);  
 
   if(!permission.granted){
     ctx.status = 403;
@@ -111,10 +110,6 @@ async function getByUser(ctx){
     }
   }
 }
-
-
-
-
 
 
 

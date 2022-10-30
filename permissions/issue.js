@@ -34,11 +34,10 @@ exports.getByStatus = (requester) => {
 };
 
 
-//admin has permission?
-exports.getByUser = (requesterID,requester, data) => {
+exports.getByUser = (requester,data) => {
   return ac
     .can(requester.role)
-    .context({requester: requesterID, owner: data.userID})
+    .context({requester: requester.id, owner: data.id})
     .execute('read')
     .sync()
     .on('Issues')

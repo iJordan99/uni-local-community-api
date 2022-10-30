@@ -2,23 +2,35 @@ const Router = require('koa-router');
 const bodyParser = require('koa-bodyparser');
 const router = Router({prefix: '/api/v1/users'});
 const auth = require('../controllers/auth.js');
+const can = require('../permissions/user.js');
 
 const _user = require('../models/helpers/user.js');
+const _role = require('../models/helpers/role.js');
 const { validateUser, validateUserUpdate } = require('../controllers/validation.js');
 
 router.get('/', auth ,getAll);
 router.post('/', bodyParser(), validateUser, createUser);
-router.put('/', auth, bodyParser(), validateUserUpdate, updateUser);
-router.del('/', auth, deleteUser);
+router.put('/:id', auth, bodyParser(), validateUserUpdate, updateUser);
+router.del('/:id', auth, deleteUser);
 
 async function getAll(ctx){
-  let attributes = ['password'];
-  const users = await _user.findWithout(attributes);
+  let requester = ctx.state.user;
+  requester = await _role.getRole(requester.RoleId);  
+  const permission = can.getAll(requester);
 
-  if(users.length){
-    ctx.body = users;
+  if(!permission.granted){
+    ctx.status = 403;
   } else {
-    console.log('No users found');
+    let attributes = ['password'];
+    const users = await _user.findWithout(attributes);
+
+    if(users.length){
+      ctx.body = users;
+      ctx.status = 200;
+    } else {
+      console.log('No users found');
+      ctx.status = 204;
+    }
   }
 }
 
@@ -29,16 +41,39 @@ async function createUser(ctx){
 }
 
 async function updateUser(ctx){
-  const body = ctx.request.body;
-  let user = ctx.state.user;
-  await _user.update(user,body);
-  ctx.status = 200;
+  const data = ctx.request.body;
+  
+  let requester = ctx.state.user;
+  
+  let user = ctx.params.id; 
+  user = await _user.findById(user);
+
+  let requesterRole = await _role.getRole(requester.RoleId);
+  requester.role = requesterRole.role;
+  
+  const permission = can.updateUser(requester,user);
+
+  if(!permission.granted){
+    ctx.status = 403;
+  } else { 
+    await _user.update(user,data);
+    ctx.status = 200;  
+  }
 }
 
 async function deleteUser(ctx){
-  let user = ctx.state.user;
-  await _user.delete(user);
+  let user = ctx.params.id;
+  let requester = ctx.state.user;
+  requester = await _role.getRole(requester.RoleId);  
+  const permission = can.getAll(requester);
+
+  if(!permission.granted){
+    ctx.status = 403;
+  } else {
+    await _user.delete(user);
+  }
   ctx.status = 200;
 }
+
 
 module.exports = router; 

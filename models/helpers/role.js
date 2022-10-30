@@ -6,7 +6,7 @@ const getRole = async (roleID) => {
       id: roleID
     },
     raw: true,
-    nest: true,
+    nest: true
   });
 };
 

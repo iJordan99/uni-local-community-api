@@ -1,6 +1,5 @@
 const { sequelize,User} = require('../');
 
-
 const findByUsername = async (username) => {
   return await User.findOne({
     where: {
@@ -9,6 +8,16 @@ const findByUsername = async (username) => {
     raw: true,
     nest: true
   });
+}
+
+const findById = async (id) => {
+  return await User.findOne({
+    where: {
+      id: id
+    },
+    raw: true,
+    nest: true
+  })
 }
 
 const findWithout = async (attributes) => {
@@ -30,20 +39,21 @@ const create = async(data) => {
 
 const update = async(user,data) => {
   return await User.update({ password: data.password, email: data.email, username: data.username},
-    { where: { id: user.id }}
+    { where: { id: user }}
   );
 }
 
 const deleteUser = async(user) => {
-  await User.destroy({
+  return await User.destroy({
     where: {
-      id: user.id
+      id: user
     }
   });
 }
 
 module.exports.findByUsername= findByUsername;
 module.exports.findWithout = findWithout;
+module.exports.findById = findById;
 module.exports.create = create;
 module.exports.update = update;
 module.exports.delete = deleteUser;

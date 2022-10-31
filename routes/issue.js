@@ -24,33 +24,55 @@ router.get('/status/:status', auth, getByStatus);
 //if user views issues and sees status as addressed they should see a URI to apporve the fix (set status to fixed)
 
 async function myIssues(ctx){
-  let requester = ctx.state.user;
-  const issues = await _issue.findAllByUser(requester.id);
   const host = 'https://disneysummer-basilhazard-3000.codio-box.uk';
-  issues.map((issue) => {
-    let date = new Date(issue.createdAt).toLocaleDateString();
-    issue.createdAt = date;
-    date = new Date(issue.updatedAt).toLocaleDateString();
-    issue.updatedAt = date;
+  let requester = ctx.state.user;
 
-    if(issue.status === 'addressed'){
-      issue.uri = `${host}/api/v1/issue/${issue.id}`  
-    }
+  let role = await _role.getRole(requester.RoleId);
+
+  let issues;
+  
+  if(role.role == 'user'){
+    issues = await _issue.findAllByUser(requester.id);
+  } else {
+    issues = await _issue.getAll();
+  }
+
+  issues.map((issue) => {
+      let date = new Date(issue.createdAt).toLocaleDateString();
+      issue.createdAt = date;
+      date = new Date(issue.updatedAt).toLocaleDateString();
+      issue.updatedAt = date;
+
+      if(issue.status != 'new'){
+        issue.uri = `${host}/api/v1/issue/${issue.id}`  
+      }
   });
 
   ctx.body = issues;
-  ctx.sta = 200;
+  ctx.status = 200;
 }
 
 async function updateStatus(ctx){
   //only admin should be able to update status to flagged,addressed and new - allow users to set fixed
   const issueID = ctx.params.id;
-  const data = ctx.request.body;
+  let data = ctx.request.body;
   let requester = ctx.state.user;
+  const requesterId = requester.id;
   requester = await _role.getRole(requester.RoleId);
 
-  const permission = can.updateStatus(requester);
-  const issue = _issue.getById(issueID);
+
+  const issue = await _issue.getById(issueID);
+  
+  let permission;
+
+  if(requester.role != 'admin'){
+    if(requesterId != issue.UserId ){
+      ctx.status = 403;
+      return;
+    } else {
+      permission = can.updateStatus(requester,data);
+    }
+  } else { permission = can.updateStatus(requester,data); }
 
   if(!permission.granted){
     ctx.status = 403;
@@ -59,7 +81,6 @@ async function updateStatus(ctx){
     ctx.status = 200;
   }
 }
-
 
 async function getByStatus(ctx){
   //make this dynamic 

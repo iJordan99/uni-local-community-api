@@ -13,7 +13,7 @@ const getByStatus = async (reqStatus) => {
 };
 
 const getById = async (id) => {
-  return Issue.findOne({
+  return await Issue.findOne({
     where: {
       id: id,
     },
@@ -36,7 +36,7 @@ const create = async(data,user) => {
 };
 
 const findAllByUser = async (userID) => {
-  return Issue.findAll({
+  return await Issue.findAll({
     where: {
       userID: userID
     },
@@ -47,13 +47,21 @@ const findAllByUser = async (userID) => {
 };
 
 const updateStatus = async (issue, data) => {
-  return Issue.update({ status: data.status, updatedAt: new Date() },  
+  return await Issue.update({ status: data.status, updatedAt: new Date() },  
     {where: { id: issue}}
   );
 };
+
+const getAll = async () => {
+  return await Issue.findAll({
+    raw: true,
+    nest: true
+  });
+}
 
 module.exports.getByStatus = getByStatus;
 module.exports.getById = getById;
 module.exports.create = create;
 module.exports.findAllByUser = findAllByUser;
 module.exports.updateStatus = updateStatus;
+module.exports.getAll = getAll;

@@ -24,7 +24,7 @@ async function getAll(ctx){
     let attributes = ['password'];
     const users = await _user.findWithout(attributes);
 
-    if(users.length){
+    if(users){
       ctx.body = users;
       ctx.status = 200;
     } else {

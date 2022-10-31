@@ -11,8 +11,8 @@ const _user = require('../models/helpers/user.js');
 
 const { validateIssue, validateIssueStatus } = require('../controllers/validation.js');
 
-//rework these routes ? should posting to the /:id update the status or the issue itself
-router.get('/:uuid', auth, bodyParser() ,issueByUUID);
+router.get('/:uuid', auth, issueByUUID);
+router.delete('/:uuid', auth, deleteIssue);
 router.post('/:uuid', auth, bodyParser(), validateIssueStatus, updateStatus);
 
 router.get('/', auth, myIssues);
@@ -21,14 +21,30 @@ router.post('/', auth, bodyParser(), validateIssue ,createIssue);
 router.get('/user/:username', auth, getByUser);
 router.get('/status/:status', auth, getByStatus);
 
-//if user views issues and sees status as addressed they should see a URI to apporve the fix (set status to fixed)
+async function deleteIssue(ctx){
+  let issueUUID = ctx.params.uuid;
+  let requester = ctx.state.user;
+  requesterRole = await _role.getRole(requester.RoleId);
+  requester.role = requesterRole.role
+
+  const issue = await _issue.getByUUID(issueUUID);
+
+  const permission = can.deleteIssue(requester,issue);
+
+  if(!permission.granted){
+    ctx.status = 403;
+  } else {
+    await _issue.delete(issueUUID);
+    ctx.status = 204;
+  }
+}
+
 
 async function myIssues(ctx){
   const host = 'https://disneysummer-basilhazard-3000.codio-box.uk';
   let requester = ctx.state.user;
 
   let role = await _role.getRole(requester.RoleId);
-
   let issues;
   
   if(role.role == 'user'){
@@ -57,14 +73,14 @@ async function updateStatus(ctx){
   const issueUUID = ctx.params.uuid;
   let data = ctx.request.body;
   let requester = ctx.state.user;
+
   const requesterId = requester.id;
   requester = await _role.getRole(requester.RoleId);
-
-
+  
   const issue = await _issue.getByUUID(issueUUID);
   
   let permission;
-
+  
   if(requester.role != 'admin'){
     if(requesterId != issue.UserId ){
       ctx.status = 403;
@@ -78,7 +94,7 @@ async function updateStatus(ctx){
     ctx.status = 403;
   } else {
     await _issue.updateStatus(issueUUID, data);
-    ctx.status = 200;
+    ctx.status = 204;
   }
 }
 
@@ -118,6 +134,8 @@ async function issueByUUID(ctx){
   } else {
     const date = new Date(issue.createdAt).toLocaleDateString();
     issue.createdAt = date;
+    delete(issue.UserId);
+    delete(issue.id);
     ctx.body = issue;
     ctx.status = 200;
   }
@@ -127,8 +145,8 @@ async function createIssue(ctx){
   const data = ctx.request.body;
   let user = ctx.state.user;
   user = await _user.findByUsername(user.username)
-  _issue.create(data,user);
-  ctx.status = 200;
+  await _issue.create(data,user);
+  ctx.status = 201;
 }
 
 async function getByUser(ctx){

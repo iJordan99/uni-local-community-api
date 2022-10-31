@@ -38,9 +38,9 @@ async function createUser(ctx){
   const body = ctx.request.body;
   if(_user.isNew){
     await _user.create(body);
-    ctx.status = 200;
+    ctx.status = 201;
   } else {
-    ctx.status = 302;
+    ctx.status = 400;
     console.error(`${body.username} already exists`);
   }  
 }
@@ -62,7 +62,7 @@ async function updateUser(ctx){
     ctx.status = 403;
   } else { 
     await _user.update(user,data);
-    ctx.status = 200;  
+    ctx.status = 204;  
   }
 }
 
@@ -76,8 +76,8 @@ async function deleteUser(ctx){
     ctx.status = 403;
   } else {
     await _user.delete(user);
+    ctx.status = 204;
   }
-  ctx.status = 200;
 }
 
 

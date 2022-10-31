@@ -9,6 +9,10 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
+      uuid: {
+        type: Sequelize.CHAR(36),
+        allowNull: false
+      },
       issueName: {
         allowNull: false,
         type: Sequelize.STRING(30),

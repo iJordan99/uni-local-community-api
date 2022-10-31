@@ -8,7 +8,7 @@ const getByStatus = async (reqStatus) => {
     },
     raw: true,
     nest: true,
-    attributes: {exclude: ['updatedAt', 'UserId', 'userID', 'photo', 'description', 'reportedBy']}
+    attributes: {exclude: ['updatedAt', 'UserId', 'userID', 'photo', 'description', 'reportedBy', 'id']}
   });
 };
 
@@ -16,6 +16,17 @@ const getById = async (id) => {
   return await Issue.findOne({
     where: {
       id: id,
+    },
+    raw: true,
+    nest: true,
+    attributes: {exclude: ['updatedAt', 'id', 'userID']}
+  });
+};
+
+const getByUUID = async (id) => {
+  return await Issue.findOne({
+    where: {
+      uuid: id,
     },
     raw: true,
     nest: true,
@@ -40,7 +51,7 @@ const findAllByUser = async (userID) => {
     where: {
       userID: userID
     },
-    attributes: {exclude: ['password', 'UserId', 'userID']},
+    attributes: {exclude: ['password', 'UserId', 'userID', 'id']},
     raw: true,
     nest: true
   });
@@ -48,7 +59,7 @@ const findAllByUser = async (userID) => {
 
 const updateStatus = async (issue, data) => {
   return await Issue.update({ status: data.status, updatedAt: new Date() },  
-    {where: { id: issue}}
+    {where: { uuid: issue}}
   );
 };
 
@@ -61,6 +72,7 @@ const getAll = async () => {
 
 module.exports.getByStatus = getByStatus;
 module.exports.getById = getById;
+module.exports.getByUUID = getByUUID;
 module.exports.create = create;
 module.exports.findAllByUser = findAllByUser;
 module.exports.updateStatus = updateStatus;

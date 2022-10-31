@@ -12,6 +12,10 @@ module.exports = (sequelize, DataTypes) => {
   }
   Issue.init({
     issueName: DataTypes.STRING(30), 
+    uuid: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4
+    },
     location: DataTypes.STRING(100),
     photo: DataTypes.STRING,
     status: DataTypes.STRING(10),

@@ -12,13 +12,13 @@ const _user = require('../models/helpers/user.js');
 const { validateIssue, validateIssueStatus } = require('../controllers/validation.js');
 
 //rework these routes ? should posting to the /:id update the status or the issue itself
-router.get('/:id([0-9]{1,})', auth, bodyParser() ,issueById);
-router.post('/:id([0-9]{1,})', auth, bodyParser(), validateIssueStatus, updateStatus);
+router.get('/:uuid', auth, bodyParser() ,issueByUUID);
+router.post('/:uuid', auth, bodyParser(), validateIssueStatus, updateStatus);
 
 router.get('/', auth, myIssues);
 router.post('/', auth, bodyParser(), validateIssue ,createIssue);
 
-router.get('/:username', auth, getByUser);
+router.get('/user/:username', auth, getByUser);
 router.get('/status/:status', auth, getByStatus);
 
 //if user views issues and sees status as addressed they should see a URI to apporve the fix (set status to fixed)
@@ -44,7 +44,7 @@ async function myIssues(ctx){
       issue.updatedAt = date;
 
       if(issue.status != 'new'){
-        issue.uri = `${host}/api/v1/issue/${issue.id}`  
+        issue.uri = `${host}/api/v1/issue/${issue.uuid}`  
       }
   });
 
@@ -54,14 +54,14 @@ async function myIssues(ctx){
 
 async function updateStatus(ctx){
   //only admin should be able to update status to flagged,addressed and new - allow users to set fixed
-  const issueID = ctx.params.id;
+  const issueUUID = ctx.params.uuid;
   let data = ctx.request.body;
   let requester = ctx.state.user;
   const requesterId = requester.id;
   requester = await _role.getRole(requester.RoleId);
 
 
-  const issue = await _issue.getById(issueID);
+  const issue = await _issue.getByUUID(issueUUID);
   
   let permission;
 
@@ -77,13 +77,12 @@ async function updateStatus(ctx){
   if(!permission.granted){
     ctx.status = 403;
   } else {
-    await _issue.updateStatus(issueID, data);
+    await _issue.updateStatus(issueUUID, data);
     ctx.status = 200;
   }
 }
 
 async function getByStatus(ctx){
-  //make this dynamic 
   const host = 'https://disneysummer-basilhazard-3000.codio-box.uk';
   let requester = ctx.state.user;
   
@@ -97,7 +96,7 @@ async function getByStatus(ctx){
     issues.map((issue) => {
       const date = new Date(issue.createdAt).toLocaleDateString();
       issue.createdAt = date;
-      issue.URI = `${host}/api/v1/issue/${issue.id}`
+      issue.URI = `${host}/api/v1/issue/${issue.uuid}`
     });
 
     ctx.body = issues;
@@ -105,12 +104,12 @@ async function getByStatus(ctx){
   }
 }
 
-async function issueById(ctx){ 
+async function issueByUUID(ctx){ 
   let requester = ctx.state.user;
   let requesterRole = await _role.getRole(requester.RoleId);  
   requester.role = requesterRole.role;
 
-  const issue = await _issue.getById(ctx.params.id)  
+  const issue = await _issue.getByUUID(ctx.params.uuid)  
 
   const permission = can.getById(requester, issue);
   
@@ -134,6 +133,7 @@ async function createIssue(ctx){
 
 async function getByUser(ctx){
   let requester = ctx.state.user;
+  
   let requesterRole = await _role.getRole(requester.RoleId);
   requester.role = requesterRole.role;
   

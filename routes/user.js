@@ -28,7 +28,7 @@ async function getAll(ctx){
       ctx.body = users;
       ctx.status = 200;
     } else {
-      console.log('No users found');
+      console.error('No users found');
       ctx.status = 204;
     }
   }
@@ -36,8 +36,13 @@ async function getAll(ctx){
 
 async function createUser(ctx){
   const body = ctx.request.body;
-  await _user.create(body);
-  ctx.status = 200;
+  if(_user.isNew){
+    await _user.create(body);
+    ctx.status = 200;
+  } else {
+    ctx.status = 302;
+    console.error(`${body.username} already exists`);
+  }  
 }
 
 async function updateUser(ctx){

@@ -2,7 +2,7 @@
 	"$schema": "http://json-schema.org/draft-07/schema",
 	"definitions": {
 		"issue": {
-			"id": "/issue",
+			"$id": "#issue",
 			"title": "Issue",
 			"description": "An issue within the local community",
 			"type": "object",
@@ -23,27 +23,174 @@
 					"maxLength": 500
 				},
 				"photo": {
-					"description": "URL for ohoto of the issue",
-					"type": "string"
+					"description": "URL for photo of the issue",
+					"type": "string",
+					"format": "uri"
 				}
 			},
 			"required": ["issueName", "location", "description"],
 			"additionalProperties": false
 		},
+		"issueView": {
+			"$id": "issueView",
+			"title": "Issue View",
+			"description": "Issues owned by user",
+			"type": "object",
+			"properties": {
+				"issueName": {
+					"description": "Issue name",
+					"type": "string"
+				},
+				"uuid": {
+					"description": "uuid of issue",
+					"type": "string",
+					"format": "uuid"
+				},
+				"location": {
+					"description": "Location of issue",
+					"type": "string"
+				},
+				"photo": {
+					"description": "Photo of the issue",
+					"type": "string",
+					"format": "uri"
+				},
+				"status": {
+					"description": "Current status of the issue",
+					"type": "string"
+				},
+				"description": {
+					"description": "Description of the issue",
+					"type": "string"
+				},
+				"createdAt": {
+					"description": "Date the issue was logged",
+					"type": "string",
+					"format": "date"
+				},
+				"updatedAt": {
+					"description": "Date the issue was last updated",
+					"type": "string",
+					"format": "date"
+				},
+				"uri": {
+					"description": "Link to the issue",
+					"type": "string",
+					"format": "uri"
+				}
+			}
+		},
+		"issueList": {
+			"$id": "#issueList",
+			"title": "Issues List",
+			"description": "List of issues created by user. Admin user retrieves all issues by all users",
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/issueView"
+			}
+		},
+		"filteredView": {
+			"$id": "filteredView",
+			"title": "Issue Filtered View",
+			"description": "Issues filtered by status",
+			"type": "object",
+			"properties": {
+				"issueName": {
+					"description": "Issue name",
+					"type": "string"
+				},
+				"uuid": {
+					"description": "uuid of issue",
+					"type": "string",
+					"format": "uuid"
+				},
+				"location": {
+					"description": "Location of issue",
+					"type": "string"
+				},
+				"status": {
+					"description": "Current status of the issue",
+					"type": "string"
+				},
+				"createdAt": {
+					"description": "Date the issue was logged",
+					"type": "string",
+					"format": "date"
+				},
+				"uri": {
+					"description": "Link to the issue",
+					"type": "string",
+					"format": "uri"
+				}
+			}
+		},
+		"statusFilter": {
+			"$id": "statusFiler",
+			"title": "Filtered issue list by status",
+			"description": "List of issues filtered by their status",
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/filteredView"
+			}
+		},
 		"statusUpdate": {
-			"id": "#statusUpdate",
-			"title": "Issue",
-			"description": "An issue within the local community",
+			"$id": "#statusUpdate",
+			"title": "Issue Update",
+			"description": "Statuses a user can update",
 			"type": "object",
 			"properties": {
 				"status": {
-					"description": "status of issue",
+					"description": "value of status update",
 					"type": "string",
-					"enum": ["flagged", "new", "addressed", "fixed"]
+					"enum": ["fixed", "flagged", "new", "addressed"]
 				}
 			},
 			"required": ["status"],
 			"additionalProperties": false
+		},
+		"issueCreated": {
+			"$id": "#issueCreated",
+			"title": "Issue Created",
+			"description": "Confirmation of a successful issue creation",
+			"type": "object",
+			"properties": {
+				"issueName": {
+					"description": "Name of the created issue",
+					"type": "string"
+				},
+				"uuid": {
+					"description": "uuid of the created issue",
+					"type": "string",
+					"format": "uuid"
+				},
+				"uri": {
+					"description": "Path to fetch the issue",
+					"type": "string",
+					"format": "uri"
+				}
+			}
+		},
+		"updatedStatusView": {
+			"$id": "#updatedView",
+			"title": "Updated Status View",
+			"description": "Information about the updated issue",
+			"type": "object",
+			"properties": {
+				"uuid": {
+					"description": "",
+					"type": "string",
+					"format": "uuid"
+				},
+				"updatedAt": {
+					"description": "Date the issue status was updated",
+					"type": "string",
+					"format": "date"
+				},
+				"status": {
+					"description": "The updated status",
+					"type": "string"
+				}
+			}
 		}
 	}
 }

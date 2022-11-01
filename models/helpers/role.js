@@ -1,7 +1,7 @@
 const { sequelize,Role} = require('../');
 
-const getRole = async (roleID) => {
-  return await Role.findOne({
+const getRole = (roleID) => {
+  return Role.findOne({
     where:{
       id: roleID
     },
@@ -9,7 +9,6 @@ const getRole = async (roleID) => {
     nest: true
   });
 };
-
 
 
 module.exports.getRole = getRole;

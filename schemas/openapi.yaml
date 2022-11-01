@@ -1,0 +1,191 @@
+openapi: 3.0.3
+info:
+  version: 1.0.0
+  title: Back End API.
+  description: A small API for issues within a local community.
+  contact: 
+    name: Jordan Smith
+    email: smithj115@uni.coventry.ac.uk
+  license:
+    name: Apache 2.0
+    url: 'https://www.apache.org/licenses/LICENSE-2.0.html'
+servers:
+  - url: 'https://disneysummer-basilhazard-3000.codio-box.uk/api/v1'
+    description: Dev server
+tags: 
+  - name: Issues
+    description: API endpoints for performing CRUD operations on issues.
+  - name: Users
+    description: API endpoints for user management.
+paths:
+  /issues:
+    summary: Represents a singular issue
+    description: > 
+      This resource represents a single issue submitted by a user in the database.
+      Each issue is identifiable by a `uuid`
+    post:
+      tags:
+        - Issues
+      description:
+        Create a new Issue
+      requestBody:
+        description: All new Issue information
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./issue.json#/definitions/issue
+      responses:
+        '201':
+          description: Issue created
+          content:
+            application/json:
+              schema:
+                $ref: ./issue.json#/definitions/issueCreated
+    get:
+      tags:
+        - Issues
+      summary:
+        List all issues submitted  
+      description: 
+        Users will see all of their issues. Admin users will see all issues by  **all** users
+      responses:
+        '200':
+          description: List of issues
+          content:
+            application/json:
+              schema:
+                $ref: ./issue.json#/definitions/issueList
+        '401':
+          description: Only registered users can list issues
+  /issues/{uuid}:
+    get:
+      tags: 
+        - Issues
+      summary: Get single issue
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Universal unique identifier of issue
+      responses:
+        '200':
+          description: View of issue
+          content:
+            application/json:
+              schema:
+                $ref: ./issue.json#/definitions/issueView
+        '404':
+          description: Not found
+        '403':
+          description: Non admin users can only view their own submissions
+    put:
+      tags: 
+        - Issues
+      summary: Update issue status
+      description:
+        Users can update an issue status to `fixed`. Admins have access to **all** status values
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Universal unique identifier of issue
+      requestBody:
+        description: All new Issue information
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./issue.json#/definitions/statusUpdate
+      responses:
+        '200':
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                $ref: ./issue.json#/definitions/updatedStatusView
+        '403':
+          description: Non admin users can only update to a fixed status of their own issue
+        '404':
+          description: Not found
+    delete:
+      tags:
+        - Issues
+      summary: Delete an issue
+      description:
+        Users can delete an issue they created
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Universal unique identifier of issue   
+      responses:
+        '204':
+          description: Issue deleted
+        '403':
+          description: Forbidden - Users can only delete their own 
+        '404':
+          description: Not found
+  /user/{username}:
+    get:
+      tags: 
+        - Issues
+      summary: Filter issues by user
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Username of user
+      responses:
+        '200':
+          description: View of issue
+          content:
+            application/json:
+              schema:
+                $ref: ./issue.json#/definitions/issueList
+        '404':
+          description: Not found
+        '403':
+          description: Non admin users can only view their own submissions
+  /status/{status}:
+    get:
+      tags:
+        - Issues
+      summary: Filter issues by status
+      parameters:
+        - name: status
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Status of issues
+      responses:
+        '200':
+          description: View of filtered issues
+          content:
+            application/json:
+              schema:
+                $ref: ./issue.json#/definitions/filteredView
+        '403':
+          description: Admin access only
+        '404':
+          description: Not found      
+
+
+         
+        
+
+
+    
+    

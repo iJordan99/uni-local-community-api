@@ -1,13 +1,20 @@
 const { sequelize,User} = require('../');
 
 const findByUsername = (username) => {
-  return User.findOne({
+  let user =  User.findOne({
     where: {
       username: username
     },
     raw: true,
     nest: true
   });
+
+  if(user){
+    return user;
+  } else {
+    return false;
+  }
+
 }
 
 const findById = (id) => {
@@ -51,15 +58,15 @@ const deleteUser = (user) => {
   });
 }
 
-const isUser = (username) => {
-  let isNew = User.findOne({
+const isUser = (data) => {
+  let user = User.findOne({
     where: { username: data.username}
   });
 
-  if(isNew){
+  if(user){
     return false;
   } else {
-    return true;
+    return user;
   }
 
 }
@@ -70,3 +77,4 @@ module.exports.findById = findById;
 module.exports.create = create;
 module.exports.update = update;
 module.exports.delete = deleteUser;
+module.exports.isUser = isUser;

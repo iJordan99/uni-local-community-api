@@ -1,6 +1,6 @@
 const Router = require('koa-router');
 const bodyParser = require('koa-bodyparser');
-const router = Router({prefix: '/api/v1/issue'});
+const router = Router({prefix: '/api/v1/issues'});
 const auth = require('../controllers/auth.js');
 
 const can = require('../permissions/issue.js');
@@ -13,7 +13,7 @@ const { validateIssue, validateIssueStatus } = require('../controllers/validatio
 
 router.get('/:uuid', auth, issueByUUID);
 router.delete('/:uuid', auth, deleteIssue);
-router.post('/:uuid', auth, bodyParser(), validateIssueStatus, updateStatus);
+router.put('/:uuid', auth, bodyParser(), validateIssueStatus, updateStatus);
 
 router.get('/', auth, myIssues);
 router.post('/', auth, bodyParser(), validateIssue ,createIssue);
@@ -29,16 +29,18 @@ async function deleteIssue(ctx){
 
   const issue = await _issue.getByUUID(issueUUID);
 
-  const permission = can.deleteIssue(requester,issue);
-
-  if(!permission.granted){
-    ctx.status = 403;
+  if(issue){
+    const permission = can.deleteIssue(requester,issue);
+    if(!permission.granted){
+      ctx.status = 403;
+    } else {
+      await _issue.delete(issueUUID);
+      ctx.status = 204;
+    }
   } else {
-    await _issue.delete(issueUUID);
-    ctx.status = 204;
+    ctx.status = 404;
   }
 }
-
 
 async function myIssues(ctx){
   const host = 'https://disneysummer-basilhazard-3000.codio-box.uk';
@@ -60,7 +62,7 @@ async function myIssues(ctx){
       issue.updatedAt = date;
 
       if(issue.status != 'new'){
-        issue.uri = `${host}/api/v1/issue/${issue.uuid}`  
+        issue.uri = `${host}/api/v1/issues/${issue.uuid}`  
       }
   });
 
@@ -69,7 +71,6 @@ async function myIssues(ctx){
 }
 
 async function updateStatus(ctx){
-  //only admin should be able to update status to flagged,addressed and new - allow users to set fixed
   const issueUUID = ctx.params.uuid;
   let data = ctx.request.body;
   let requester = ctx.state.user;
@@ -81,21 +82,29 @@ async function updateStatus(ctx){
   
   let permission;
   
-  if(requester.role != 'admin'){
-    if(requesterId != issue.UserId ){
-      ctx.status = 403;
-      return;
-    } else {
-      permission = can.updateStatus(requester,data);
-    }
-  } else { permission = can.updateStatus(requester,data); }
+  if(issue){
 
-  if(!permission.granted){
-    ctx.status = 403;
+    if(requester.role != 'admin'){
+        if(requesterId != issue.UserId ){
+          ctx.status = 403;
+          return;
+        } else {
+          permission = can.updateStatus(requester,data);
+        }
+      } else { permission = can.updateStatus(requester,data); }
+
+      if(!permission.granted){
+        ctx.status = 403;
+      } else {
+        await _issue.updateStatus(issueUUID, data);
+        let updated = await _issue.getByUUID(issueUUID);
+        let updatedAt = new Date(updated.updatedAt).toLocaleDateString(); ;
+        ctx.body = { uuid: updated.uuid, updatedAt: updatedAt};
+        ctx.status = 200;
+      }
   } else {
-    await _issue.updateStatus(issueUUID, data);
-    ctx.status = 204;
-  }
+    ctx.status = 404;
+  } 
 }
 
 async function getByStatus(ctx){
@@ -109,35 +118,47 @@ async function getByStatus(ctx){
   if(!permission.granted){
     ctx.status = 403;
   } else {
-    issues.map((issue) => {
-      const date = new Date(issue.createdAt).toLocaleDateString();
-      issue.createdAt = date;
-      issue.URI = `${host}/api/v1/issue/${issue.uuid}`
-    });
+    if(issues != ''){
+      issues.map((issue) => {
+        const date = new Date(issue.createdAt).toLocaleDateString();
+        issue.createdAt = date;
+        issue.uri = `${host}/api/v1/issues/${issue.uuid}`
+      });
 
-    ctx.body = issues;
-    ctx.status = 200;
+      ctx.body = issues;
+      ctx.status = 200;
+    } else {
+      ctx.status = 404;
+    }   
   }
 }
 
 async function issueByUUID(ctx){ 
+  const host = 'https://disneysummer-basilhazard-3000.codio-box.uk';
   let requester = ctx.state.user;
   let requesterRole = await _role.getRole(requester.RoleId);  
   requester.role = requesterRole.role;
 
   const issue = await _issue.getByUUID(ctx.params.uuid)  
-
-  const permission = can.getById(requester, issue);
   
-  if(!permission.granted){
-    ctx.status = 403;
-  } else {
-    const date = new Date(issue.createdAt).toLocaleDateString();
-    issue.createdAt = date;
-    delete(issue.UserId);
-    delete(issue.id);
-    ctx.body = issue;
-    ctx.status = 200;
+  if(issue){
+    const permission = can.getById(requester, issue);
+    if(!permission.granted){
+      ctx.status = 403;
+    } else {
+      let date = new Date(issue.createdAt).toLocaleDateString();
+      issue.createdAt = date;
+      date = new Date(issue.updatedAt).toLocaleDateString();
+      issue.updatedAt = date;
+      issue.uri = `${host}/api/v1/issues/${issue.uuid}`
+      delete(issue.UserId);
+      delete(issue.id);
+      
+      ctx.body = issue;
+      ctx.status = 200;
+    }
+  } else{
+    ctx.status = 404;
   }
 }
 
@@ -145,11 +166,14 @@ async function createIssue(ctx){
   const data = ctx.request.body;
   let user = ctx.state.user;
   user = await _user.findByUsername(user.username)
-  await _issue.create(data,user);
+  const newData = await _issue.create(data,user);
+  
+  ctx.body = { issueName: newData.issueName, uuid: newData.uuid, uri: 'add this' }
   ctx.status = 201;
 }
 
 async function getByUser(ctx){
+  const host = 'https://disneysummer-basilhazard-3000.codio-box.uk';
   let requester = ctx.state.user;
   
   let requesterRole = await _role.getRole(requester.RoleId);
@@ -158,19 +182,30 @@ async function getByUser(ctx){
   let user = ctx.params.username; 
   user = await _user.findByUsername(user);
 
-  const permission = can.getByUser(requester, user)
-  const data = await _issue.findAllByUser(user.id);
-
-  if(!permission.granted){
-    ctx.status = 403;
+  if(!user){
+    ctx.status = 404;
   } else {
-    if(data){
-      ctx.body = data;
-      ctx.status = 200;
+    const permission = can.getByUser(requester, user)
+    const issues = await _issue.findAllByUser(user.id);
+    
+    if(!permission.granted){
+      ctx.status = 403;
     } else {
-      ctx.status = 404;
+      if(issues){
+        issues.map((issue) => {
+          let date = new Date(issue.createdAt).toLocaleDateString();
+          issue.createdAt = date;
+          date = new Date(issue.updatedAt).toLocaleDateString();
+          issue.updatedAt = date;
+          issue.uri = `${host}/api/v1/issues/${issue.uuid}`
+        });
+        ctx.body = issues;
+        ctx.status = 200;
+      } else {
+        ctx.status = 404;
+      }
     }
-  }
+  } 
 }
 
 

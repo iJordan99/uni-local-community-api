@@ -2,7 +2,7 @@
 	"$schema": "http://json-schema.org/draft-07/schema",
 	"definitions": {
 		"user": {
-			"id": "/user",
+			"$id": "#user",
 			"title": "User",
 			"description": "User registration data",
 			"type": "object",
@@ -37,7 +37,7 @@
 			"additionalProperties": false
 		},
     "userUpdate": {
-      "id": "#userUpdate",
+      "$id": "#userUpdate",
       "title": "User update data",
       "description": "Data a user can update",
       "type": "object",

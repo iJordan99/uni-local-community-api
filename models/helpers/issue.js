@@ -1,8 +1,7 @@
 const { sequelize,Issue} = require('../');
 
-
-const getByStatus = async (reqStatus) => {
-  return await Issue.findAll({
+const getByStatus = (reqStatus) => {
+  return Issue.findAll({
     where: {
       status: reqStatus
     },
@@ -12,8 +11,8 @@ const getByStatus = async (reqStatus) => {
   });
 };
 
-const getById = async (id) => {
-  return await Issue.findOne({
+const getById = (id) => {
+  return Issue.findOne({
     where: {
       id: id,
     },
@@ -23,18 +22,25 @@ const getById = async (id) => {
   });
 };
 
-const getByUUID = async (id) => {
-  return await Issue.findOne({
+const getByUUID = (id) => {
+  let issue =  Issue.findOne({
     where: {
       uuid: id,
     },
     raw: true,
     nest: true,
-    attributes: {exclude: ['updatedAt', 'id', 'userID']}
+    attributes: {exclude: ['id', 'userID']}
   });
+
+  if(issue){
+    return issue;
+  } else {
+    return false;
+  }
+
 };
 
-const create = async(data,user) => {
+const create = async (data,user) => {
   const create = await Issue.create({
     issueName: data.issueName ,
     location: data.location,
@@ -44,10 +50,20 @@ const create = async(data,user) => {
     reportedBy: user.username,
     userID: user.id,    
   });
+
+  return Issue.findOne({
+    where: {
+      issueName: data.issueName,
+      userID: user.id
+    },
+    raw: true,
+    nest: true,
+  })
+
 };
 
-const findAllByUser = async (userID) => {
-  return await Issue.findAll({
+const findAllByUser = (userID) => {
+  return Issue.findAll({
     where: {
       userID: userID
     },
@@ -57,16 +73,24 @@ const findAllByUser = async (userID) => {
   });
 };
 
-const updateStatus = async (issue, data) => {
-  return await Issue.update({ status: data.status, updatedAt: new Date() },  
+const updateStatus = (issue, data) => {
+  return  Issue.update({ status: data.status, updatedAt: new Date() },  
     {where: { uuid: issue}}
   );
 };
 
-const getAll = async () => {
-  return await Issue.findAll({
+const getAll = () => {
+  return Issue.findAll({
     raw: true,
     nest: true
+  });
+}
+
+const deleteIssue = (uuid) => {
+  return Issue.destroy({
+    where: {
+      uuid: uuid
+    }
   });
 }
 
@@ -77,3 +101,4 @@ module.exports.create = create;
 module.exports.findAllByUser = findAllByUser;
 module.exports.updateStatus = updateStatus;
 module.exports.getAll = getAll;
+module.exports.delete = deleteIssue;

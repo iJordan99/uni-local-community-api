@@ -1,7 +1,7 @@
-const { sequelize,Issue} = require('../');
+const { sequelize,issue} = require('../');
 
 const getByStatus = (reqStatus) => {
-  return Issue.findAll({
+  return issue.findAll({
     where: {
       status: reqStatus
     },
@@ -12,7 +12,7 @@ const getByStatus = (reqStatus) => {
 };
 
 const getById = (id) => {
-  return Issue.findOne({
+  return issue.findOne({
     where: {
       id: id,
     },
@@ -23,7 +23,7 @@ const getById = (id) => {
 };
 
 const getByUUID = (id) => {
-  let issue =  Issue.findOne({
+  let IsIssue =  issue.findOne({
     where: {
       uuid: id,
     },
@@ -32,8 +32,8 @@ const getByUUID = (id) => {
     attributes: {exclude: ['id', 'userID']}
   });
 
-  if(issue){
-    return issue;
+  if(IsIssue){
+    return IsIssue;
   } else {
     return false;
   }
@@ -41,7 +41,7 @@ const getByUUID = (id) => {
 };
 
 const create = async (data,user) => {
-  const create = await Issue.create({
+  const create = await issue.create({
     issueName: data.issueName ,
     location: data.location,
     description: data.description,
@@ -51,7 +51,7 @@ const create = async (data,user) => {
     userID: user.id,    
   });
 
-  return Issue.findOne({
+  return issue.findOne({
     where: {
       issueName: data.issueName,
       userID: user.id
@@ -63,31 +63,31 @@ const create = async (data,user) => {
 };
 
 const findAllByUser = (userID) => {
-  return Issue.findAll({
+  return issue.findAll({
     where: {
       userID: userID
     },
-    attributes: {exclude: ['password', 'UserId', 'userID', 'id']},
+    attributes: {exclude: ['password', 'UserId', 'userId', 'id']},
     raw: true,
     nest: true
   });
 };
 
-const updateStatus = (issue, data) => {
-  return  Issue.update({ status: data.status, updatedAt: new Date() },  
-    {where: { uuid: issue}}
+const updateStatus = (uuid, data) => {
+  return issue.update({ status: data.status, updatedAt: new Date() },  
+    {where: { uuid: uuid}}
   );
 };
 
 const getAll = () => {
-  return Issue.findAll({
+  return issue.findAll({
     raw: true,
     nest: true
   });
 }
 
 const deleteIssue = (uuid) => {
-  return Issue.destroy({
+  return issue.destroy({
     where: {
       uuid: uuid
     }

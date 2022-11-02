@@ -48,7 +48,7 @@ paths:
       summary:
         List all issues submitted  
       description: 
-        Users will see all of their issues. Admin users will see all issues by  **all** users
+        Users will see all of their own issues. Admin users will see all issues by  **all** users
       responses:
         '200':
           description: List of issues
@@ -129,7 +129,7 @@ paths:
             format: uuid
           description: Universal unique identifier of issue   
       responses:
-        '204':
+        '200':
           description: Issue deleted
         '403':
           description: Forbidden - Users can only delete their own 
@@ -148,7 +148,7 @@ paths:
           required: true
           schema:
             type: string
-          description: Username of user
+          description: Username
       responses:
         '200':
           description: View of issue
@@ -173,7 +173,7 @@ paths:
           required: true
           schema:
             type: string
-          description: Status of issues
+          description: Status
       responses:
         '200':
           description: View of filtered issues
@@ -185,6 +185,78 @@ paths:
           description: Admin access only
         '404':
           description: Not found      
+  /users:
+    get:
+      tags:
+        - Users
+      summary: Get user details
+      description:
+        Fetches information regarding the current user. For admins a list of all users is returned. Excludes passwords
+      responses:
+        '200':
+          description: test
+          content:
+            application/json:
+              schema:
+                $ref: ./user.json#/definitions/userList   
+        '404':
+          description: No users found
+    post:
+      tags:
+        - Users
+      summary: Create a new user
+      requestBody:
+        description: All new Issue information
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./user.json#/definitions/user
+      responses:
+        '201':
+          description: User created
+        '400':
+          description: User already exists
+  /users/{id}:
+    put:
+      tags:
+        - Users
+      summary: Update user details and credentials
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: User identifier
+      requestBody:
+        description: New credentials/info
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./user.json#/definitions/userUpdate
+      responses:
+        '204':
+          description: User updated
+        '403':
+          description: Forbidden
+    delete:
+      tags:
+        - Users
+      summary: Delete a user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: User identifier
+      responses:
+        '204':
+          description: User deleted
+        '403':
+          description: Forbidden
 
 
          

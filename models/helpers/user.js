@@ -1,7 +1,7 @@
-const { sequelize,User} = require('../');
+const { sequelize,user} = require('../');
 
 const findByUsername = (username) => {
-  let user =  User.findOne({
+  let IsUser =  user.findOne({
     where: {
       username: username
     },
@@ -9,8 +9,8 @@ const findByUsername = (username) => {
     nest: true
   });
 
-  if(user){
-    return user;
+  if(IsUser){
+    return IsUser;
   } else {
     return false;
   }
@@ -18,7 +18,7 @@ const findByUsername = (username) => {
 }
 
 const findById = (id) => {
-  return User.findOne({
+  return user.findOne({
     where: {
       id: id
     },
@@ -28,47 +28,49 @@ const findById = (id) => {
 }
 
 const findWithout = (attributes) => {
-  return User.findAll({
+  return user.findAll({
     attributes: {exclude: attributes}
   });
 };
 
 const create = (data) => {
-  return User.create({
+  return user.create({
     firstName: data.firstName,
     lastName: data.lastName,
     username: data.username,
     email: data.email,
     password: data.password,
-    roleID: 1
+    roleId: 1
   });
 }
 
 const update = (user,data) => {
-  return  User.update({ password: data.password, email: data.email, username: data.username},
+  return  user.update({ password: data.password, email: data.email, username: data.username},
     { where: { id: user }}
   );
 }
 
 const deleteUser = (user) => {
-  return User.destroy({
+  return user.destroy({
     where: {
       id: user
     }
   });
 }
 
-const isUser = (data) => {
-  let user = User.findOne({
-    where: { username: data.username}
+const isUser = async (data) => {
+  let isUser = await user.findOne({
+    where: {
+      [Op.or]: [{username: data.username}, {email: data.email}]
+    }
+  
   });
 
-  if(user){
+  if(isUser){
     return false;
   } else {
-    return user;
+    return isUser;
   }
-
 }
 
 module.exports.findByUsername= findByUsername;

@@ -24,7 +24,7 @@ router.get('/status/:status', auth, getByStatus);
 async function deleteIssue(ctx){
   let issueUUID = ctx.params.uuid;
   let requester = ctx.state.user;
-  requesterRole = await _role.getRole(requester.RoleId);
+  requesterRole = await _role.getRole(requester.roleId);
   requester.role = requesterRole.role
 
   const issue = await _issue.getByUUID(issueUUID);
@@ -35,7 +35,7 @@ async function deleteIssue(ctx){
       ctx.status = 403;
     } else {
       await _issue.delete(issueUUID);
-      ctx.status = 204;
+      ctx.status = 200;
     }
   } else {
     ctx.status = 404;
@@ -46,7 +46,7 @@ async function myIssues(ctx){
   const host = 'https://disneysummer-basilhazard-3000.codio-box.uk';
   let requester = ctx.state.user;
 
-  let role = await _role.getRole(requester.RoleId);
+  let role = await _role.getRole(requester.roleId);
   let issues;
   
   if(role.role == 'user'){
@@ -76,22 +76,23 @@ async function updateStatus(ctx){
   let requester = ctx.state.user;
 
   const requesterId = requester.id;
-  requester = await _role.getRole(requester.RoleId);
+  requester = await _role.getRole(requester.roleId);
   
   const issue = await _issue.getByUUID(issueUUID);
-  
+
   let permission;
   
   if(issue){
-
     if(requester.role != 'admin'){
-        if(requesterId != issue.UserId ){
-          ctx.status = 403;
-          return;
-        } else {
-          permission = can.updateStatus(requester,data);
-        }
-      } else { permission = can.updateStatus(requester,data); }
+
+      if(requesterId != issue.userId ){
+        ctx.status = 403;
+        return;
+      } else {
+        permission = can.updateStatus(requester,data);
+      }
+
+    } else { permission = can.updateStatus(requester,data); }
 
       if(!permission.granted){
         ctx.status = 403;
@@ -112,7 +113,7 @@ async function getByStatus(ctx){
   let requester = ctx.state.user;
   
   const issues = await _issue.getByStatus(ctx.params.status);
-  requester = await _role.getRole(requester.RoleId);  
+  requester = await _role.getRole(requester.roleId);  
   const permission = can.getByStatus(requester);
 
   if(!permission.granted){
@@ -136,7 +137,7 @@ async function getByStatus(ctx){
 async function issueByUUID(ctx){ 
   const host = 'https://disneysummer-basilhazard-3000.codio-box.uk';
   let requester = ctx.state.user;
-  let requesterRole = await _role.getRole(requester.RoleId);  
+  let requesterRole = await _role.getRole(requester.roleId);  
   requester.role = requesterRole.role;
 
   const issue = await _issue.getByUUID(ctx.params.uuid)  
@@ -151,7 +152,7 @@ async function issueByUUID(ctx){
       date = new Date(issue.updatedAt).toLocaleDateString();
       issue.updatedAt = date;
       issue.uri = `${host}/api/v1/issues/${issue.uuid}`
-      delete(issue.UserId);
+      delete(issue.userId);
       delete(issue.id);
       
       ctx.body = issue;
@@ -176,7 +177,7 @@ async function getByUser(ctx){
   const host = 'https://disneysummer-basilhazard-3000.codio-box.uk';
   let requester = ctx.state.user;
   
-  let requesterRole = await _role.getRole(requester.RoleId);
+  let requesterRole = await _role.getRole(requester.roleId);
   requester.role = requesterRole.role;
   
   let user = ctx.params.username; 

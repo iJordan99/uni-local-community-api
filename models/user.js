@@ -4,12 +4,12 @@ const {
 } = require('sequelize');
 const bcrypt = require('bcrypt');
 module.exports = (sequelize, DataTypes) => {
-  class User extends Model {
+  class user extends Model {
     static associate(models) {
 
     }
   }
-  User.init({
+  user.init({
     firstName: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -33,10 +33,14 @@ module.exports = (sequelize, DataTypes) => {
       set(value){
         this.setDataValue('password', bcrypt.hashSync(value,10));
       },
+    },
+    roleId: {
+      type: DataTypes.INTEGER,
+      allowNull: false
     }
   }, {
     sequelize,
-    modelName: 'User',
+    modelName: 'user',
   });
-  return User;
+  return user;
 };

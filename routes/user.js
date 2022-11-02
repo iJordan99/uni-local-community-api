@@ -8,14 +8,15 @@ const _user = require('../models/helpers/user.js');
 const _role = require('../models/helpers/role.js');
 const { validateUser, validateUserUpdate } = require('../controllers/validation.js');
 
-router.get('/', auth ,getAll);
+router.get('/', auth ,getInfo);
 router.post('/', bodyParser(), validateUser, createUser);
 router.put('/:id', auth, bodyParser(), validateUserUpdate, updateUser);
 router.del('/:id', auth, deleteUser);
 
-async function getAll(ctx){
+async function getInfo(ctx){
+  //modify to allow user role to get info about themselves
   let requester = ctx.state.user;
-  requester = await _role.getRole(requester.RoleId);  
+  requester = await _role.getRole(requester.roleId);  
   const permission = can.getAll(requester);
 
   if(!permission.granted){
@@ -29,14 +30,17 @@ async function getAll(ctx){
       ctx.status = 200;
     } else {
       console.error('No users found');
-      ctx.status = 204;
+      ctx.status = 404;
     }
   }
 }
 
 async function createUser(ctx){
   const body = ctx.request.body;
-  if(_user.isNew){
+
+  let isUser = await _user.isUser(body);
+  //need to check if email exists     
+  if(isUser != ''){
     await _user.create(body);
     ctx.status = 201;
   } else {
@@ -53,7 +57,7 @@ async function updateUser(ctx){
   let user = ctx.params.id; 
   user = await _user.findById(user);
 
-  let requesterRole = await _role.getRole(requester.RoleId);
+  let requesterRole = await _role.getRole(requester.roleId);
   requester.role = requesterRole.role;
   
   const permission = can.updateUser(requester,user);

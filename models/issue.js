@@ -3,14 +3,14 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class Issue extends Model {
+  class issue extends Model {
     static associate(models) {
       // define association here
-      Issue.belongsTo(models.User);
-      models.User.hasMany(Issue);
+      issue.belongsTo(models.user);
+      models.user.hasMany(issue);
     }
   }
-  Issue.init({
+  issue.init({
     issueName: DataTypes.STRING(30), 
     uuid: {
       type: DataTypes.UUID,
@@ -23,7 +23,7 @@ module.exports = (sequelize, DataTypes) => {
     userID: DataTypes.INTEGER,
   }, {
     sequelize,
-    modelName: 'Issue',
+    modelName: 'issue',
   });
-  return Issue;
+  return issue;
 };

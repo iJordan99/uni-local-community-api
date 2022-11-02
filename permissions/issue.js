@@ -38,7 +38,7 @@ exports.updateStatus = (requester,data) => {
 exports.getById = (requester,data) => {
   return ac
     .can(requester.role)
-    .context({requester: requester.id, owner: data.UserId})
+    .context({requester: requester.id, owner: data.userId})
     .execute('read')
     .sync()
     .on('Issues')
@@ -64,7 +64,7 @@ exports.getByUser = (requester,data) => {
 exports.deleteIssue = (requester,data) => {
   return ac
   .can(requester.role)
-  .context({requester: requester.id, owner: data.UserId})
+  .context({requester: requester.id, owner: data.userId})
   .execute('delete')
   .sync()
   .on('Issues')

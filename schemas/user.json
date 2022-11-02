@@ -12,53 +12,105 @@
 					"type": "string",
 					"maxLength": 20
 				},
-        "lastName": {
-          "description": "Users last name",
-          "type": "string",
+				"lastName": {
+					"description": "Users last name",
+					"type": "string",
 					"maxLength": 20
-        },
-        "username": {
-          "description": "Username",
-          "type": "string",
-          "minLength": 3
-        },
-        "email": {
-          "description": "User email address",
-          "type": "string",
-          "format": "email"
-        },
-        "password": {
-          "description": "User password",
-          "type": "string",
-          "minLength": 5
-        }
+				},
+				"username": {
+					"description": "Username",
+					"type": "string",
+					"minLength": 3
+				},
+				"email": {
+					"description": "User email address",
+					"type": "string",
+					"format": "email"
+				},
+				"password": {
+					"description": "User password",
+					"type": "string",
+					"minLength": 5
+				}
 			},
 			"required": ["firstName", "lastName", "username", "email", "password"],
 			"additionalProperties": false
 		},
-    "userUpdate": {
-      "$id": "#userUpdate",
-      "title": "User update data",
-      "description": "Data a user can update",
-      "type": "object",
-      "properties": {
-        "username": {
-          "description": "Username",
-          "type": "string",
-          "minLength": 3
-        },
-        "password": {
-          "description": "User password",
-          "type": "string",
-          "minLength": 5
-        },
-        "email": {
-          "description": "User email address",
-          "type": "string",
-          "format": "email"
-        }
-      },
-      "additionalProperties": false
-    }
+		"userUpdate": {
+			"$id": "#userUpdate",
+			"title": "User update data",
+			"description": "Data a user can update",
+			"type": "object",
+			"properties": {
+				"username": {
+					"description": "Username",
+					"type": "string",
+					"minLength": 3
+				},
+				"password": {
+					"description": "User password",
+					"type": "string",
+					"minLength": 5
+				},
+				"email": {
+					"description": "User email address",
+					"type": "string",
+					"format": "email"
+				}
+			},
+			"additionalProperties": false
+		},
+		"userView": {
+			"$id": "#userView",
+			"title": "List of users",
+			"description": "Lists all registered users",
+			"type": "object",
+			"properties": {
+				"id": {
+					"description": "Integer idenitifier of a user",
+					"type": "integer"
+				},
+				"firstName": {
+					"description": "Users first name",
+					"type": "string"
+				},
+				"lastName": {
+					"description": "Users last name",
+					"type": "string"
+				},
+				"username": {
+					"description": "Username",
+					"type": "string"
+				},
+				"email": {
+					"description": "Users email address",
+					"type": "string",
+					"format": "email"
+				},
+				"roleId": {
+					"description": "Users role id number",
+					"type": "integer"
+				},
+				"createdAt": {
+					"description": "Date the user registered",
+					"type": "string",
+					"format": "date"
+				},
+				"updatedAt": {
+					"description": "Date of last credentials update",
+					"type": "string",
+					"format": "date"
+				}
+			}
+		},
+		"userList": {
+			"$id": "#userList",
+			"title": "Users List",
+			"description": "Admins can retrieve all users",
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/userView"
+			}
+		}
 	}
 }

@@ -1,7 +1,7 @@
-const { sequelize,Role} = require('../');
+const { sequelize,role} = require('../');
 
 const getRole = (roleID) => {
-  return Role.findOne({
+  return role.findOne({
     where:{
       id: roleID
     },

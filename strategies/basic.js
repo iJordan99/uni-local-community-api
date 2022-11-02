@@ -1,5 +1,5 @@
 const BasicStrategy = require('passport-http').BasicStrategy;
-const { sequelize, User } = require('../models');
+const { sequelize, user } = require('../models');
 const bcrypt = require('bcrypt');
 
 const checkPass = function(user, password){
@@ -9,7 +9,7 @@ const checkPass = function(user, password){
 
 const checkCredentials = async (username, password, done) => {
 
-  const result = await User.findOne({
+  const result = await user.findOne({
       where: {
         username: username
       },

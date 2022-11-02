@@ -63,6 +63,11 @@
 					"description": "Description of the issue",
 					"type": "string"
 				},
+				"uri": {
+					"description": "Link to the issue",
+					"type": "string",
+					"format": "uri"
+				},
 				"createdAt": {
 					"description": "Date the issue was logged",
 					"type": "string",
@@ -72,11 +77,6 @@
 					"description": "Date the issue was last updated",
 					"type": "string",
 					"format": "date"
-				},
-				"uri": {
-					"description": "Link to the issue",
-					"type": "string",
-					"format": "uri"
 				}
 			}
 		},

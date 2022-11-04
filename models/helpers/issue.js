@@ -1,13 +1,13 @@
 const { sequelize,issue} = require('../');
 
-const getByStatus = (reqStatus) => {
+const getByStatus = (reqStatus, attributes) => {
   return issue.findAll({
     where: {
       status: reqStatus
     },
     raw: true,
     nest: true,
-    attributes: {exclude: ['updatedAt', 'UserId', 'userID', 'photo', 'description', 'reportedBy', 'id']}
+    attributes: {exclude: attributes}
   });
 };
 
@@ -22,14 +22,19 @@ const getById = (id) => {
   });
 };
 
-const getByUUID = (id) => {
+const getByUUID = (id,attributes) => {
+
+  if(!attributes){
+    let attributes;
+  }
+
   let IsIssue =  issue.findOne({
     where: {
       uuid: id,
     },
     raw: true,
     nest: true,
-    attributes: {exclude: ['id', 'userID']}
+    attributes: {exclude: attributes}
   });
 
   if(IsIssue){
@@ -43,12 +48,13 @@ const getByUUID = (id) => {
 const create = async (data,user) => {
   const create = await issue.create({
     issueName: data.issueName ,
-    location: data.location,
+    longitude: data.location.longitude,
+    latitude: data.location.latitude,
     description: data.description,
     photo: data.photo,
     status: 'new',
     reportedBy: user.username,
-    userID: user.id,    
+    userId: user.id,    
   });
 
   return issue.findOne({
@@ -62,12 +68,17 @@ const create = async (data,user) => {
 
 };
 
-const findAllByUser = (userID) => {
+const findAllByUser = (userId, attributes) => {
+
+  if(!attributes){
+    let attributes;
+  }
+
   return issue.findAll({
     where: {
-      userID: userID
+      userId: userId
     },
-    attributes: {exclude: ['password', 'UserId', 'userId', 'id']},
+    attributes: {exclude: attributes},
     raw: true,
     nest: true
   });
@@ -79,8 +90,13 @@ const updateStatus = (uuid, data) => {
   );
 };
 
-const getAll = () => {
+const getAll = (attributes) => {
+  if(!attributes){
+    let attributes;
+  }
+
   return issue.findAll({
+    attributes: {exclude: attributes},
     raw: true,
     nest: true
   });

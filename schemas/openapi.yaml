@@ -77,7 +77,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: ./issue.json#/definitions/issueView
+                $ref: ./issue.json#/definitions/issueDetails
         '404':
           description: Not found
         '403':
@@ -180,7 +180,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: ./issue.json#/definitions/filteredView
+                $ref: ./issue.json#/definitions/statusFilter
         '403':
           description: Admin access only
         '404':

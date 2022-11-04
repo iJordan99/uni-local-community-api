@@ -12,15 +12,24 @@
 					"type": "string",
 					"maxLength": 30
 				},
-				"location": {
-					"description": "The location of the issue",
-					"type": "string",
-					"maxLength": 100
-				},
 				"description": {
 					"description": "A detailed, multi-line description of the issue",
 					"type": "string",
 					"maxLength": 500
+				},
+				"location": {
+					"description": "The location of the issue",
+					"type": "object",
+					"properties": {
+						"longitude": {
+							"type": "number",
+							"description": "longitude"
+						},
+						"latitude": {
+							"type": "number",
+							"description": "longitude"
+						}
+					}
 				},
 				"photo": {
 					"description": "URL for photo of the issue",
@@ -28,10 +37,10 @@
 					"format": "uri"
 				}
 			},
-			"required": ["issueName", "location", "description"],
+			"required": ["issueName", "description"],
 			"additionalProperties": false
 		},
-		"issueView": {
+		"issueViewList": {
 			"$id": "issueView",
 			"title": "Issue View",
 			"description": "Issues owned by user",
@@ -46,12 +55,56 @@
 					"type": "string",
 					"format": "uuid"
 				},
-				"location": {
-					"description": "Location of issue",
+				"status": {
+					"description": "Current status of the issue",
 					"type": "string"
 				},
+				"links": {
+					"description": "Hateoas links",
+					"type": "object",
+					"properties": {
+						"self": {
+							"type": "string",
+							"format": "uri"
+						}
+					}
+				}
+			}
+		},
+		"issueList": {
+			"$id": "#issueList",
+			"title": "Issues List",
+			"description": "List of issues created by user. Admin user retrieves all issues by all users",
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/issueViewList"
+			}
+		},
+		"issueDetails": {
+			"$id": "issueDetails",
+			"title": "Issue Details",
+			"description": "Issues filtered by status",
+			"type": "object",
+			"properties": {
+				"issueName": {
+					"description": "Issue name",
+					"type": "string"
+				},
+				"uuid": {
+					"description": "uuid of issue",
+					"type": "string",
+					"format": "uuid"
+				},
+				"longitude": {
+					"description": "latitude of issue",
+					"type": "number"
+				},
+				"latitude": {
+					"description": "longitude of issue",
+					"type": "number"
+				},
 				"photo": {
-					"description": "Photo of the issue",
+					"description": "Link to photo",
 					"type": "string",
 					"format": "uri"
 				},
@@ -60,13 +113,8 @@
 					"type": "string"
 				},
 				"description": {
-					"description": "Description of the issue",
+					"description": "Description of issue",
 					"type": "string"
-				},
-				"uri": {
-					"description": "Link to the issue",
-					"type": "string",
-					"format": "uri"
 				},
 				"createdAt": {
 					"description": "Date the issue was logged",
@@ -77,16 +125,17 @@
 					"description": "Date the issue was last updated",
 					"type": "string",
 					"format": "date"
+				},
+				"links": {
+					"description": "Link to the issue",
+					"type": "object",
+					"properties": {
+						"self": {
+							"type": "string",
+							"format": "uri"
+						}
+					}
 				}
-			}
-		},
-		"issueList": {
-			"$id": "#issueList",
-			"title": "Issues List",
-			"description": "List of issues created by user. Admin user retrieves all issues by all users",
-			"type": "array",
-			"items": {
-				"$ref": "#/definitions/issueView"
 			}
 		},
 		"filteredView": {
@@ -104,10 +153,6 @@
 					"type": "string",
 					"format": "uuid"
 				},
-				"location": {
-					"description": "Location of issue",
-					"type": "string"
-				},
 				"status": {
 					"description": "Current status of the issue",
 					"type": "string"
@@ -117,10 +162,15 @@
 					"type": "string",
 					"format": "date"
 				},
-				"uri": {
-					"description": "Link to the issue",
-					"type": "string",
-					"format": "uri"
+				"links": {
+					"description": "Hateoas",
+					"type": "object",
+					"properties": {
+            "self": {
+              "type": "string",
+              "format": "uri"
+            }
+          }
 				}
 			}
 		},
@@ -163,10 +213,15 @@
 					"type": "string",
 					"format": "uuid"
 				},
-				"uri": {
-					"description": "Path to fetch the issue",
-					"type": "string",
-					"format": "uri"
+				"links": {
+					"description": "object of relevent hateoas",
+					"type": "object",
+					"properties": {
+						"self": {
+							"type": "string",
+							"format": "uri"
+						}
+					}
 				}
 			}
 		},
@@ -189,6 +244,15 @@
 				"status": {
 					"description": "The updated status",
 					"type": "string"
+				},
+				"links": {
+					"type": "object",
+					"properties": {
+						"self": {
+							"type": "string",
+							"format": "uri"
+						}
+					}
 				}
 			}
 		}

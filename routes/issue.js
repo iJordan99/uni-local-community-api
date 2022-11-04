@@ -1,6 +1,7 @@
 const Router = require('koa-router');
 const bodyParser = require('koa-bodyparser');
-const router = Router({prefix: '/api/v1/issues'});
+const prefix = '/api/v1/issues';
+const router = Router({prefix: prefix});
 const auth = require('../controllers/auth.js');
 
 const can = require('../permissions/issue.js');
@@ -11,15 +12,22 @@ const _user = require('../models/helpers/user.js');
 
 const { validateIssue, validateIssueStatus } = require('../controllers/validation.js');
 
-router.get('/:uuid', auth, issueByUUID);
-router.delete('/:uuid', auth, deleteIssue);
-router.put('/:uuid', auth, bodyParser(), validateIssueStatus, updateStatus);
+const { getDistance } = require('geolib');
 
-router.get('/', auth, myIssues);
-router.post('/', auth, bodyParser(), validateIssue ,createIssue);
+router.get('issues','/', auth, myIssues);
+router.post('issues','/', auth, bodyParser(), validateIssue ,createIssue);
 
-router.get('/user/:username', auth, getByUser);
-router.get('/status/:status', auth, getByStatus);
+router.get('issueById','/:uuid', auth, issueByUUID);
+router.delete('issueById','/:uuid', auth, deleteIssue);
+router.put('statusUpdate','/:uuid', auth, bodyParser(), validateIssueStatus, updateStatus);
+
+router.get('statusFilter', '/status/:status', auth, getByStatus);
+
+router.get('userFilter','/user/:username', auth, getByUser);
+
+// router.get('location', '/location/:longitude/:latitude', auth, byLocation);
+
+
 
 async function deleteIssue(ctx){
   let issueUUID = ctx.params.uuid;
@@ -43,27 +51,19 @@ async function deleteIssue(ctx){
 }
 
 async function myIssues(ctx){
-  const host = 'https://disneysummer-basilhazard-3000.codio-box.uk';
   let requester = ctx.state.user;
-
   let role = await _role.getRole(requester.roleId);
   let issues;
-  
+  let exclude = ['password', 'userId', 'id', 'description', 'photo', 'createdAt', 'updatedAt', 'longitude', 'latitude'];
+
   if(role.role == 'user'){
-    issues = await _issue.findAllByUser(requester.id);
+    issues = await _issue.findAllByUser(requester.id, exclude);
   } else {
-    issues = await _issue.getAll();
+    issues = await _issue.getAll(exclude);
   }
 
   issues.map((issue) => {
-      let date = new Date(issue.createdAt).toLocaleDateString();
-      issue.createdAt = date;
-      date = new Date(issue.updatedAt).toLocaleDateString();
-      issue.updatedAt = date;
-
-      if(issue.status != 'new'){
-        issue.uri = `${host}/api/v1/issues/${issue.uuid}`  
-      }
+    issue.links = [{ self: ctx.protocol + 's://' + ctx.host + router.url('issueById', issue.uuid)}] 
   });
 
   ctx.body = issues;
@@ -100,7 +100,9 @@ async function updateStatus(ctx){
         await _issue.updateStatus(issueUUID, data);
         let updated = await _issue.getByUUID(issueUUID);
         let updatedAt = new Date(updated.updatedAt).toLocaleDateString(); ;
-        ctx.body = { uuid: updated.uuid, updatedAt: updatedAt};
+        ctx.body = { uuid: updated.uuid, updatedAt: updatedAt, status: updated.status,
+            links: [{ self: ctx.protocol + 's://' + ctx.host + router.url('issueById', issue.uuid)}] 
+        };
         ctx.status = 200;
       }
   } else {
@@ -109,10 +111,10 @@ async function updateStatus(ctx){
 }
 
 async function getByStatus(ctx){
-  const host = 'https://disneysummer-basilhazard-3000.codio-box.uk';
   let requester = ctx.state.user;
   
-  const issues = await _issue.getByStatus(ctx.params.status);
+  let exclude = ['updatedAt', 'userId', 'photo', 'description', 'reportedBy', 'id', 'longitude', 'latitude'];
+  const issues = await _issue.getByStatus(ctx.params.status,exclude);
   requester = await _role.getRole(requester.roleId);  
   const permission = can.getByStatus(requester);
 
@@ -123,7 +125,8 @@ async function getByStatus(ctx){
       issues.map((issue) => {
         const date = new Date(issue.createdAt).toLocaleDateString();
         issue.createdAt = date;
-        issue.uri = `${host}/api/v1/issues/${issue.uuid}`
+        issue.links = [{ self: ctx.protocol + 's://' + ctx.host + router.url('issueById', issue.uuid)}
+        ] 
       });
 
       ctx.body = issues;
@@ -135,25 +138,27 @@ async function getByStatus(ctx){
 }
 
 async function issueByUUID(ctx){ 
-  const host = 'https://disneysummer-basilhazard-3000.codio-box.uk';
   let requester = ctx.state.user;
   let requesterRole = await _role.getRole(requester.roleId);  
   requester.role = requesterRole.role;
 
-  const issue = await _issue.getByUUID(ctx.params.uuid)  
+  let exclude = ['id'];
+  const issue = await _issue.getByUUID(ctx.params.uuid, exclude)  
   
   if(issue){
     const permission = can.getById(requester, issue);
     if(!permission.granted){
       ctx.status = 403;
     } else {
+
       let date = new Date(issue.createdAt).toLocaleDateString();
       issue.createdAt = date;
       date = new Date(issue.updatedAt).toLocaleDateString();
       issue.updatedAt = date;
-      issue.uri = `${host}/api/v1/issues/${issue.uuid}`
+
+      issue.links = [{ self: ctx.protocol + 's://' + ctx.host + router.url('issueById', issue.uuid)}] 
+
       delete(issue.userId);
-      delete(issue.id);
       
       ctx.body = issue;
       ctx.status = 200;
@@ -168,37 +173,36 @@ async function createIssue(ctx){
   let user = ctx.state.user;
   user = await _user.findByUsername(user.username)
   const newData = await _issue.create(data,user);
-  
-  ctx.body = { issueName: newData.issueName, uuid: newData.uuid, uri: 'add this' }
+
+  ctx.body = { issueName: newData.issueName, uuid: newData.uuid,
+    links: [{ self: ctx.protocol + 's://' + ctx.host + router.url('issueById', issue.uuid) }]
+  };
+
   ctx.status = 201;
 }
 
 async function getByUser(ctx){
-  const host = 'https://disneysummer-basilhazard-3000.codio-box.uk';
-  let requester = ctx.state.user;
-  
+  let requester = ctx.state.user;  
   let requesterRole = await _role.getRole(requester.roleId);
   requester.role = requesterRole.role;
   
   let user = ctx.params.username; 
   user = await _user.findByUsername(user);
 
+  let exclude = ['password', 'userId', 'id', 'description', 'photo', 'createdAt', 'updatedAt', 'longitude', 'latitude'];
+
   if(!user){
     ctx.status = 404;
   } else {
     const permission = can.getByUser(requester, user)
-    const issues = await _issue.findAllByUser(user.id);
+    const issues = await _issue.findAllByUser(user.id,exclude);
     
     if(!permission.granted){
       ctx.status = 403;
     } else {
       if(issues){
         issues.map((issue) => {
-          let date = new Date(issue.createdAt).toLocaleDateString();
-          issue.createdAt = date;
-          date = new Date(issue.updatedAt).toLocaleDateString();
-          issue.updatedAt = date;
-          issue.uri = `${host}/api/v1/issues/${issue.uuid}`
+          issue.links = [{ self: ctx.protocol + 's://' + ctx.host + router.url('issueById', issue.uuid)}]
         });
         ctx.body = issues;
         ctx.status = 200;

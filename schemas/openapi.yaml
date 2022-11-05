@@ -246,7 +246,7 @@ paths:
                 $ref: ./user.json#/definitions/userList   
         '404':
           description: No users found
-  /users/{id}:
+  /users/{username}:
     put:
       tags:
         - Users
@@ -257,7 +257,7 @@ paths:
           required: true
           schema:
             type: string
-          description: User identifier
+          description: Username
       requestBody:
         description: New credentials/info
         required: true
@@ -266,7 +266,7 @@ paths:
             schema:
               $ref: ./user.json#/definitions/userUpdate
       responses:
-        '204':
+        '200':
           description: User updated
         '403':
           description: Forbidden

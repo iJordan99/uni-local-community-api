@@ -1,4 +1,16 @@
-const { sequelize,user} = require('../');
+const { sequelize,user, role} = require('../');
+const { Op } = require("sequelize");
+
+const findWithRole = (username, attributes) => (
+  user.findOne({
+    where: {
+      username: username
+    },
+    raw: true,
+    nest: true,
+    include: role
+  })
+)
 
 const findUser = (data, attributes) => (
   user.findOne({
@@ -11,79 +23,67 @@ const findUser = (data, attributes) => (
   })
 )
 
-const findByUsername = (username) => {
-  let IsUser =  user.findOne({
+const findByUsername = (username, attributes) => (
+  user.findOne({
     where: {
       username: username
     },
     raw: true,
-    nest: true
-  });
+    nest: true,
+    attributes: {exclude: attributes}
+  })
+)
 
-  if(IsUser){
-    return IsUser;
-  } else {
-    return false;
-  }
-
-}
-
-const findById = (id) => {
-  return user.findOne({
+const findById = (id) => (
+  user.findOne({
     where: {
       id: id
     },
     raw: true,
     nest: true
   })
-}
+)
 
-const findWithout = (attributes) => {
-  return user.findAll({
+const findWithout = (attributes) => (
+  user.findAll({
     attributes: {exclude: attributes}
-  });
-};
+  })
+)
 
-const create = (data) => {
-  return user.create({
+const create = (data) => (
+  user.create({
     firstName: data.firstName,
     lastName: data.lastName,
     username: data.username,
     email: data.email,
     password: data.password,
     roleId: 1
-  });
-}
+  })
+)
 
-const update = (user,data) => {
-  return  user.update({ password: data.password, email: data.email, username: data.username},
-    { where: { id: user }}
-  );
-}
+const update = (requester,data) => (
+  user.update({ password: data.password, email: data.email, username: data.username},
+    { where: { id: requester.id }}
+  )
+)
 
-const deleteUser = (user) => {
-  return user.destroy({
+const isUser = (data) => (
+  user.findOne({
     where: {
-      id: user
+      [Op.or]: [{ email: data.email }, { username: data.username}]
     }
-  });
-}
+  })
+)
 
-const isUser = async (data) => {
-  let isUser = await user.findOne({
+const deleteUser = (username) => (
+  user.destroy({
     where: {
-      [Op.or]: [{username: data.username}, {email: data.email}]
+      username: username
     }
-  
-  });
+  })
+)
 
-  if(isUser){
-    return false;
-  } else {
-    return isUser;
-  }
-}
-
+module.exports.findWithRole = findWithRole;
 module.exports.findByUsername= findByUsername;
 module.exports.findWithout = findWithout;
 module.exports.findById = findById;

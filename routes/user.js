@@ -10,8 +10,8 @@ const { validateUser, validateUserUpdate } = require('../controllers/validation.
 
 router.get('user','/', auth ,getInfo);
 router.post('user','/', bodyParser(), validateUser, createUser);
-router.put('user','/:id', auth, bodyParser(), validateUserUpdate, updateUser);
-router.del('user','/:id', auth, deleteUser);
+router.put('user','/:username', auth, bodyParser(), validateUserUpdate, updateUser);
+router.del('user','/:username', auth, deleteUser);
 
 const getLinks = (ctx) => ({
   self: ctx.protocol + 's://' + ctx.host + router.url('user')
@@ -47,9 +47,9 @@ async function getInfo(ctx){
 async function createUser(ctx){
   const body = ctx.request.body;
 
-  let isUser = await _user.isUser(body);
-  //need to check if email exists     
-  if(isUser != ''){
+  let user = await _user.isUser(body);
+  
+  if(!user){
     await _user.create(body);
     body.links = getLinks(ctx);
     ctx.body = body;
@@ -57,19 +57,17 @@ async function createUser(ctx){
   } else {
     ctx.status = 400;
     console.error(`${body.username} already exists`);
-  }  
+  }
 }
 
 async function updateUser(ctx){
   const data = ctx.request.body;
   
-  let requester = ctx.state.user;
-  
-  let user = ctx.params.id; 
-  user = await _user.findById(user);
+  let user = ctx.params.username;
+  user = await _user.findByUsername(user)
 
-  let requesterRole = await _role.getRole(requester.roleId);
-  requester.role = requesterRole.role;
+  let requester = ctx.state.user;
+  requester = await _user.findWithRole(requester.username)
   
   const permission = can.updateUser(requester,user);
 
@@ -77,16 +75,19 @@ async function updateUser(ctx){
     ctx.status = 403;
   } else { 
     await _user.update(user,data);
-    ctx.status = 204;  
+    ctx.status = 200;  
   }
 }
 
 async function deleteUser(ctx){
-  let user = ctx.params.id;
-  let requester = ctx.state.user;
-  requester = await _role.getRole(requester.RoleId);  
-  const permission = can.getAll(requester);
+  let user = ctx.params.username;
+  user = await _user.findByUsername(user)
 
+  let requester = ctx.state.user;
+  requester = await _user.findWithRole(requester.username)
+
+  const permission = can.delete(requester,user);
+  console.log(permission.granted);
   if(!permission.granted){
     ctx.status = 403;
   } else {

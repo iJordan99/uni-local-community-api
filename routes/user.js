@@ -8,7 +8,7 @@ const _user = require('../models/helpers/user.js');
 const _role = require('../models/helpers/role.js');
 const { validateUser, validateUserUpdate } = require('../controllers/validation.js');
 
-router.get('/', auth ,getInfo);
+router.get('user','/', auth ,getInfo);
 router.post('/', bodyParser(), validateUser, createUser);
 router.put('/:id', auth, bodyParser(), validateUserUpdate, updateUser);
 router.del('/:id', auth, deleteUser);

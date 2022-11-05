@@ -42,6 +42,8 @@ paths:
             application/json:
               schema:
                 $ref: ./issue.json#/definitions/issueCreated
+        '409':
+          description: User attempting to create a duplicate
     get:
       tags:
         - Issues
@@ -184,7 +186,34 @@ paths:
         '403':
           description: Admin access only
         '404':
-          description: Not found      
+          description: Not found    
+  /location/{longitude}/{latitude}:
+    get:
+      tags:
+        - Issues
+      summary: List and sort issues by location
+      description:
+        Returns a list of issues sorted by closest 
+      parameters:
+        - name: longitude
+          in: path
+          required: true
+          schema: 
+            type: number
+          description: longitude
+        - name: latitude
+          in: path
+          required: true
+          schema: 
+            type: number
+          description: latitude
+      responses:
+        '200':
+          description: 
+          content:
+            application/json:
+              schema:
+                $ref: ./issue.json#/definitions/locationSort
   /users:
     get:
       tags:

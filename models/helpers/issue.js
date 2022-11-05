@@ -46,6 +46,10 @@ const getByUUID = (id,attributes) => {
 };
 
 const create = async (data,user) => {
+  if(! data.location){
+    data.location.longitude = null;
+    data.location.latitude = null;
+  }
   const create = await issue.create({
     issueName: data.issueName ,
     longitude: data.location.longitude,
@@ -110,6 +114,17 @@ const deleteIssue = (uuid) => {
   });
 }
 
+const isNew = (data,user) => (
+  issue.findOne({
+    where: {
+      issueName: data.issueName,
+      userId: user.id
+    }
+  })
+)
+  
+
+
 module.exports.getByStatus = getByStatus;
 module.exports.getById = getById;
 module.exports.getByUUID = getByUUID;
@@ -118,3 +133,4 @@ module.exports.findAllByUser = findAllByUser;
 module.exports.updateStatus = updateStatus;
 module.exports.getAll = getAll;
 module.exports.delete = deleteIssue;
+module.exports.isNew = isNew;

@@ -15,7 +15,7 @@ const { validateIssue, validateIssueStatus } = require('../controllers/validatio
 const { getDistance } = require('geolib');
 
 router.get('issues','/', auth, myIssues);
-router.post('issues','/', auth, bodyParser(), validateIssue ,createIssue);
+router.post('issues', '/', auth, bodyParser(), validateIssue ,createIssue);
 
 router.get('issueById','/:uuid', auth, issueByUUID);
 router.delete('issueById','/:uuid', auth, deleteIssue);
@@ -25,9 +25,39 @@ router.get('statusFilter', '/status/:status', auth, getByStatus);
 
 router.get('userFilter','/user/:username', auth, getByUser);
 
-// router.get('location', '/location/:longitude/:latitude', auth, byLocation);
+router.get('location', '/location/:longitude/:latitude', auth, byLocation);
 
+const getLinks = (ctx,issue) => ({
+  self: ctx.protocol + 's://' + ctx.host + router.url('issueById', issue.uuid)
+})
 
+async function byLocation(ctx){
+  let params = ctx.params;
+  const longitude = params.longitude;
+  const latitude = params.latitude;
+
+  let requester = ctx.state.user;
+
+  let exclude = ['password','userId', 'id', 'description', 'photo', 'createdAt', 'updatedAt', 'status', 'issueName'];
+
+  //add filtering by user or make admin only
+  let allIssues = await _issue.findAllByUser(requester.id,exclude);
+  
+  allIssues.map((issue) => {
+    let distance = getDistance(
+      { latitude: latitude, longitude: longitude},
+      { latitude: issue.latitude, longitude: issue.longitude}, 1
+    );
+
+    issue.difference = distance;
+    issue.links = getLinks(ctx,issue)
+
+  });
+
+  allIssues.sort((a,b) => a.difference - b.difference);
+  ctx.body = allIssues;
+  ctx.status = 200;
+}
 
 async function deleteIssue(ctx){
   let issueUUID = ctx.params.uuid;
@@ -63,9 +93,9 @@ async function myIssues(ctx){
   }
 
   issues.map((issue) => {
-    issue.links = [{ self: ctx.protocol + 's://' + ctx.host + router.url('issueById', issue.uuid)}] 
+    issue.links = getLinks(ctx,issue);
   });
-
+  
   ctx.body = issues;
   ctx.status = 200;
 }
@@ -101,7 +131,7 @@ async function updateStatus(ctx){
         let updated = await _issue.getByUUID(issueUUID);
         let updatedAt = new Date(updated.updatedAt).toLocaleDateString(); ;
         ctx.body = { uuid: updated.uuid, updatedAt: updatedAt, status: updated.status,
-            links: [{ self: ctx.protocol + 's://' + ctx.host + router.url('issueById', issue.uuid)}] 
+            links: getLinks(ctx,updated)
         };
         ctx.status = 200;
       }
@@ -125,8 +155,7 @@ async function getByStatus(ctx){
       issues.map((issue) => {
         const date = new Date(issue.createdAt).toLocaleDateString();
         issue.createdAt = date;
-        issue.links = [{ self: ctx.protocol + 's://' + ctx.host + router.url('issueById', issue.uuid)}
-        ] 
+        issue.links = getLinks(ctx,issue);
       });
 
       ctx.body = issues;
@@ -156,7 +185,7 @@ async function issueByUUID(ctx){
       date = new Date(issue.updatedAt).toLocaleDateString();
       issue.updatedAt = date;
 
-      issue.links = [{ self: ctx.protocol + 's://' + ctx.host + router.url('issueById', issue.uuid)}] 
+      issue.links = issue.links = getLinks(ctx,issue);
 
       delete(issue.userId);
       
@@ -172,13 +201,19 @@ async function createIssue(ctx){
   const data = ctx.request.body;
   let user = ctx.state.user;
   user = await _user.findByUsername(user.username)
-  const newData = await _issue.create(data,user);
 
-  ctx.body = { issueName: newData.issueName, uuid: newData.uuid,
-    links: [{ self: ctx.protocol + 's://' + ctx.host + router.url('issueById', issue.uuid) }]
-  };
+  let isNew = await _issue.isNew(data,user);
 
-  ctx.status = 201;
+  if(!isNew){
+    const newData = await _issue.create(data,user);
+
+     ctx.body = { issueName: newData.issueName, uuid: newData.uuid,
+      links: getLinks(ctx,newData)
+    };
+    ctx.status = 201;
+  } else {
+    ctx.status = 409;
+  }
 }
 
 async function getByUser(ctx){
@@ -202,7 +237,7 @@ async function getByUser(ctx){
     } else {
       if(issues){
         issues.map((issue) => {
-          issue.links = [{ self: ctx.protocol + 's://' + ctx.host + router.url('issueById', issue.uuid)}]
+          issue.links = getLinks(ctx,issue);
         });
         ctx.body = issues;
         ctx.status = 200;

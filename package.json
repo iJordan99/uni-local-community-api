@@ -17,6 +17,7 @@
   "dependencies": {
     "@koa/cors": "^4.0.0",
     "bcrypt": "^5.1.0",
+    "geolib": "^3.3.3",
     "jsonschema": "^1.4.1",
     "koa": "^2.13.0",
     "koa-bodyparser": "^4.3.0",

@@ -255,6 +255,49 @@
 					}
 				}
 			}
+		},
+		"locationSortView": {
+			"$id": "#locationSortView",
+			"title": "Location Sort View",
+			"description": "Sorted list of nearest issues",
+			"type": "object",
+			"properties": {
+				"uuid": {
+					"description": "",
+					"type": "string",
+					"format": "uuid"
+				},
+				"longitude": {
+					"description": "longitude of issue",
+					"type": "number"
+				},
+				"latitude": {
+					"description": "latitude of issue",
+					"type": "number"
+				},
+				"difference": {
+					"description": "difference in metres",
+					"type": "number"
+				},
+				"links": {
+					"type": "object",
+					"properties": {
+						"self": {
+							"type": "string",
+							"format": "uri"
+						}
+					}
+				}
+			}
+		},
+		"locationSort": {
+			"$id": "locationSort",
+			"title": "Filtered issue sorted by closest",
+			"description": "List of issues sorted by nearest",
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/locationSortView"
+			}
 		}
 	}
 }

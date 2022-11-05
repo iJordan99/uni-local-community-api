@@ -16,11 +16,12 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4
     },
-    location: DataTypes.STRING(100),
+    longitude: DataTypes.FLOAT,
+    latitude: DataTypes.FLOAT,
     photo: DataTypes.STRING,
     status: DataTypes.STRING(10),
     description: DataTypes.TEXT,
-    userID: DataTypes.INTEGER,
+    userId: DataTypes.INTEGER,
   }, {
     sequelize,
     modelName: 'issue',

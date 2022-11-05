@@ -18,9 +18,8 @@ module.exports = {
         type: Sequelize.STRING(30),
         unique: false,
       },
-      location: {
-        type: Sequelize.STRING(100)
-      },
+      longitude: Sequelize.FLOAT,
+      latitude: Sequelize.FLOAT,
       description: {
         type: Sequelize.TEXT
       },
@@ -38,7 +37,7 @@ module.exports = {
         allowNull: false,
         type: Sequelize.DATE
       },
-      userID: {
+      userId: {
         allowNullL: false,
         type: Sequelize.INTEGER,
         references: {

@@ -66,10 +66,6 @@
 			"description": "Lists all registered users",
 			"type": "object",
 			"properties": {
-				"id": {
-					"description": "Integer idenitifier of a user",
-					"type": "integer"
-				},
 				"firstName": {
 					"description": "Users first name",
 					"type": "string"
@@ -86,20 +82,6 @@
 					"description": "Users email address",
 					"type": "string",
 					"format": "email"
-				},
-				"roleId": {
-					"description": "Users role id number",
-					"type": "integer"
-				},
-				"createdAt": {
-					"description": "Date the user registered",
-					"type": "string",
-					"format": "date"
-				},
-				"updatedAt": {
-					"description": "Date of last credentials update",
-					"type": "string",
-					"format": "date"
 				}
 			}
 		},

@@ -1,5 +1,16 @@
 const { sequelize,user} = require('../');
 
+const findUser = (data, attributes) => (
+  user.findOne({
+    where: {
+      id: data.id
+    },
+    attributes: {exclude: attributes},
+    raw: true,
+    nest: true
+  })
+)
+
 const findByUsername = (username) => {
   let IsUser =  user.findOne({
     where: {
@@ -80,3 +91,4 @@ module.exports.create = create;
 module.exports.update = update;
 module.exports.delete = deleteUser;
 module.exports.isUser = isUser;
+module.exports.findUser = findUser;

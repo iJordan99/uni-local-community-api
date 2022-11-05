@@ -215,21 +215,6 @@ paths:
               schema:
                 $ref: ./issue.json#/definitions/locationSort
   /users:
-    get:
-      tags:
-        - Users
-      summary: Get user details
-      description:
-        Fetches information regarding the current user. For admins a list of all users is returned. Excludes passwords
-      responses:
-        '200':
-          description: test
-          content:
-            application/json:
-              schema:
-                $ref: ./user.json#/definitions/userList   
-        '404':
-          description: No users found
     post:
       tags:
         - Users
@@ -246,6 +231,21 @@ paths:
           description: User created
         '400':
           description: User already exists
+    get:
+      tags:
+        - Users
+      summary: Get user details
+      description:
+        Fetches information regarding the current user. For admins a list of all users is returned. Excludes passwords
+      responses:
+        '200':
+          description: 
+          content:
+            application/json:
+              schema:
+                $ref: ./user.json#/definitions/userList   
+        '404':
+          description: No users found
   /users/{id}:
     put:
       tags:

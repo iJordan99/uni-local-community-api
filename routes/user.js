@@ -9,28 +9,37 @@ const _role = require('../models/helpers/role.js');
 const { validateUser, validateUserUpdate } = require('../controllers/validation.js');
 
 router.get('user','/', auth ,getInfo);
-router.post('/', bodyParser(), validateUser, createUser);
-router.put('/:id', auth, bodyParser(), validateUserUpdate, updateUser);
-router.del('/:id', auth, deleteUser);
+router.post('user','/', bodyParser(), validateUser, createUser);
+router.put('user','/:id', auth, bodyParser(), validateUserUpdate, updateUser);
+router.del('user','/:id', auth, deleteUser);
+
+const getLinks = (ctx) => ({
+  self: ctx.protocol + 's://' + ctx.host + router.url('user')
+})
 
 async function getInfo(ctx){
-  //modify to allow user role to get info about themselves
   let requester = ctx.state.user;
   requester = await _role.getRole(requester.roleId);  
-  const permission = can.getAll(requester);
 
-  if(!permission.granted){
-    ctx.status = 403;
+  let attributes = ['password', 'roleId', 'createdAt', 'updatedAt', 'id'];
+  if(requester.role == 'user'){
+    const user = await _user.findUser(ctx.state.user,attributes);
+    user.links = getLinks(ctx);
+    ctx.body = user;
+    ctx.status = 200;
   } else {
-    let attributes = ['password'];
     const users = await _user.findWithout(attributes);
-
-    if(users){
-      ctx.body = users;
-      ctx.status = 200;
+    const permission = can.getAll(requester);
+    if(!permission.granted){
+      ctx.status = 403;
     } else {
-      console.error('No users found');
-      ctx.status = 404;
+      if(users){
+        ctx.body = users;
+        ctx.status = 200;
+      } else {
+        console.error('No users found');
+        ctx.status = 404;
+      }
     }
   }
 }
@@ -42,6 +51,8 @@ async function createUser(ctx){
   //need to check if email exists     
   if(isUser != ''){
     await _user.create(body);
+    body.links = getLinks(ctx);
+    ctx.body = body;
     ctx.status = 201;
   } else {
     ctx.status = 400;

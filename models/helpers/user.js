@@ -50,14 +50,15 @@ const findWithout = (attributes) => (
   })
 )
 
-const create = (data) => (
+const create = (data,token) => (
   user.create({
     firstName: data.firstName,
     lastName: data.lastName,
     username: data.username,
     email: data.email,
     password: data.password,
-    roleId: 1
+    roleId: 1,
+    jwt: token
   })
 )
 

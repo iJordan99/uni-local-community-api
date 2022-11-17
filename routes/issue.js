@@ -37,13 +37,18 @@ async function byLocation(ctx){
   const latitude = params.latitude;
 
   let requester = ctx.state.user;
+  let role = await _role.getRole(requester.roleId);
 
   let exclude = ['password','userId', 'id', 'description', 'photo', 'createdAt', 'updatedAt', 'status', 'issueName'];
 
-  //add filtering by user or make admin only
-  let allIssues = await _issue.findAllByUser(requester.id,exclude);
+  let issues;
+  if(role.role == 'user'){
+    issues = await _issue.findAllByUser(requester.id,exclude);
+  } else {
+    issues = await _issue.getAll(exclude)
+  }
   
-  allIssues.map((issue) => {
+  issues.map((issue) => {
     let distance = getDistance(
       { latitude: latitude, longitude: longitude},
       { latitude: issue.latitude, longitude: issue.longitude}, 1
@@ -54,9 +59,10 @@ async function byLocation(ctx){
 
   });
 
-  allIssues.sort((a,b) => a.difference - b.difference);
-  ctx.body = allIssues;
+  issues.sort((a,b) => a.difference - b.difference);
+  ctx.body = issues;
   ctx.status = 200;
+  ctx.type = 'application/json';
 }
 
 async function deleteIssue(ctx){
@@ -74,6 +80,7 @@ async function deleteIssue(ctx){
     } else {
       await _issue.delete(issueUUID);
       ctx.status = 200;
+      ctx.type = 'application/json';
     }
   } else {
     ctx.status = 404;
@@ -98,6 +105,7 @@ async function myIssues(ctx){
   
   ctx.body = issues;
   ctx.status = 200;
+  ctx.type = 'application/json';
 }
 
 async function updateStatus(ctx){
@@ -134,6 +142,7 @@ async function updateStatus(ctx){
             links: getLinks(ctx,updated)
         };
         ctx.status = 200;
+        ctx.type = 'application/json';
       }
   } else {
     ctx.status = 404;
@@ -160,6 +169,7 @@ async function getByStatus(ctx){
 
       ctx.body = issues;
       ctx.status = 200;
+      ctx.type = 'application/json';
     } else {
       ctx.status = 404;
     }   
@@ -191,6 +201,7 @@ async function issueByUUID(ctx){
       
       ctx.body = issue;
       ctx.status = 200;
+      ctx.type = 'application/json';
     }
   } else{
     ctx.status = 404;
@@ -211,6 +222,7 @@ async function createIssue(ctx){
       links: getLinks(ctx,newData)
     };
     ctx.status = 201;
+    ctx.type = 'application/json';
   } else {
     ctx.status = 409;
   }
@@ -241,6 +253,7 @@ async function getByUser(ctx){
         });
         ctx.body = issues;
         ctx.status = 200;
+        ctx.type = 'application/json';
       } else {
         ctx.status = 404;
       }

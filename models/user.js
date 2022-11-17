@@ -37,6 +37,10 @@ module.exports = (sequelize, DataTypes) => {
     roleId: {
       type: DataTypes.INTEGER,
       allowNull: false
+    },
+    jwt: {
+      type: DataTypes.STRING,
+      allowNull: false
     }
   }, {
     sequelize,

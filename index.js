@@ -1,6 +1,8 @@
 const koa = require('koa');
 const cors = require('@koa/cors')
+require('dotenv').config()
 const app = new koa();
+
 
 app.use(cors());
 

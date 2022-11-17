@@ -3,6 +3,8 @@ const bodyParser = require('koa-bodyparser');
 const router = Router({prefix: '/api/v1/users'});
 const auth = require('../controllers/auth.js');
 const can = require('../permissions/user.js');
+require('dotenv').config();
+const jwt = require('jsonwebtoken');
 
 const _user = require('../models/helpers/user.js');
 const _role = require('../models/helpers/role.js');
@@ -48,9 +50,17 @@ async function createUser(ctx){
   const body = ctx.request.body;
 
   let user = await _user.isUser(body);
-  
+
   if(!user){
-    await _user.create(body);
+
+    let token = jwt.sign({
+      username: body.username,
+      name: body.firstName + ` ${body.lastName}`
+    }, process.env.SECRET_KEY, {expiresIn: '7d'});
+
+    console.log(token);
+    await _user.create(body,token);
+
     body.links = getLinks(ctx);
     ctx.body = body;
     ctx.status = 201;

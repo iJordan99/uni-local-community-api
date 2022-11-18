@@ -68,6 +68,16 @@ const update = (requester,data) => (
   )
 )
 
+const updateJwt = (requester, data) => {
+  user.update(
+    { jwt: data }, {
+      where:{
+        id: requester.id
+      }
+    }
+  )
+}
+
 const isUser = (data) => (
   user.findOne({
     where: {
@@ -93,3 +103,4 @@ module.exports.update = update;
 module.exports.delete = deleteUser;
 module.exports.isUser = isUser;
 module.exports.findUser = findUser;
+module.exports.updateJwt = updateJwt;

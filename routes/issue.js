@@ -211,6 +211,7 @@ async function issueByUUID(ctx){
 async function createIssue(ctx){
   const data = ctx.request.body;
   let user = ctx.state.user;
+
   user = await _user.findByUsername(user.username)
 
   let isNew = await _issue.isNew(data,user);

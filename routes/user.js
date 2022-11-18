@@ -56,9 +56,8 @@ async function createUser(ctx){
     let token = jwt.sign({
       username: body.username,
       name: body.firstName + ` ${body.lastName}`
-    }, process.env.SECRET_KEY, {expiresIn: '7d'});
+    }, process.env.SECRET_KEY, {expiresIn: '2h'});
 
-    console.log(token);
     await _user.create(body,token);
 
     body.links = getLinks(ctx);

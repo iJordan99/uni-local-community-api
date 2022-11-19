@@ -52,7 +52,6 @@ async function createUser(ctx){
   let user = await _user.isUser(body);
 
   if(!user){
-
     let token = jwt.sign({
       username: body.username,
       name: body.firstName + ` ${body.lastName}`
@@ -104,6 +103,5 @@ async function deleteUser(ctx){
     ctx.status = 204;
   }
 }
-
 
 module.exports = router; 

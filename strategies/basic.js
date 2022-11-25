@@ -2,8 +2,8 @@ const BasicStrategy = require('passport-http').BasicStrategy;
 const _user = require('../models/helpers/user.js');
 const bcrypt = require('bcrypt');
 
-require('dotenv').config();
-
+require('dotenv').config()
+const date = new Date();
 const checkPass = function(user, password){
   const isMatch = bcrypt.compareSync(password, user.password); 
   return isMatch;

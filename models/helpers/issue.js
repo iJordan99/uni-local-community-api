@@ -46,10 +46,6 @@ const getByUUID = (id,attributes) => {
 };
 
 const create = async (data,user) => {
-  if(! data.location){
-    data.location.longitude = null;
-    data.location.latitude = null;
-  }
   const create = await issue.create({
     issueName: data.issueName ,
     longitude: data.location.longitude,
@@ -57,14 +53,14 @@ const create = async (data,user) => {
     description: data.description,
     photo: data.photo,
     status: 'new',
-    reportedBy: user.username,
     userId: user.id,    
+    tomTomId: data.tomTomId
   });
 
   return issue.findOne({
     where: {
       issueName: data.issueName,
-      userID: user.id
+      userId: user.id
     },
     raw: true,
     nest: true,
@@ -114,7 +110,7 @@ const deleteIssue = (uuid) => {
   });
 }
 
-const isNew = (data,user) => (
+const exists = (data,user) => (
   issue.findOne({
     where: {
       issueName: data.issueName,
@@ -122,8 +118,15 @@ const isNew = (data,user) => (
     }
   })
 )
-  
 
+const findByLocation = (location) => (
+  issue.findOne({
+    where: {
+      longitude: location.longitude,
+      latitude: location.latitude
+    }
+  })
+)
 
 module.exports.getByStatus = getByStatus;
 module.exports.getById = getById;
@@ -133,4 +136,5 @@ module.exports.findAllByUser = findAllByUser;
 module.exports.updateStatus = updateStatus;
 module.exports.getAll = getAll;
 module.exports.delete = deleteIssue;
-module.exports.isNew = isNew;
+module.exports.exists = exists;
+module.exports.findByLocation = findByLocation;

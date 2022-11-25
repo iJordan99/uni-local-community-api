@@ -18,8 +18,8 @@ module.exports = {
         type: Sequelize.STRING(30),
         unique: false,
       },
-      longitude: Sequelize.FLOAT,
-      latitude: Sequelize.FLOAT,
+      longitude: Sequelize.DECIMAL(11, 5),
+      latitude: Sequelize.DECIMAL(11, 5),
       description: {
         type: Sequelize.TEXT
       },
@@ -43,6 +43,16 @@ module.exports = {
         references: {
           model: {
             tableName: 'users',
+            key: 'id'
+          }
+        }
+      },
+      tomTomId: {
+        allowNull: false,
+        type: Sequelize.INTEGER,
+        references: {
+          model: {
+            tableName: 'tomToms',
             key: 'id'
           }
         }

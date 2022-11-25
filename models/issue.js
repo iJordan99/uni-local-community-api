@@ -8,6 +8,9 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       issue.belongsTo(models.user);
       models.user.hasMany(issue);
+
+      issue.belongsTo(models.tomTom);
+      models.tomTom.hasMany(issue);
     }
   }
   issue.init({
@@ -16,12 +19,13 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4
     },
-    longitude: DataTypes.FLOAT,
-    latitude: DataTypes.FLOAT,
+    longitude: DataTypes.DECIMAL(11, 5),
+    latitude: DataTypes.DECIMAL(11, 5),
     photo: DataTypes.STRING,
     status: DataTypes.STRING(10),
     description: DataTypes.TEXT,
     userId: DataTypes.INTEGER,
+    tomTomId: DataTypes.INTEGER,
   }, {
     sequelize,
     modelName: 'issue',

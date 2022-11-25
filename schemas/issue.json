@@ -28,16 +28,38 @@
 						"latitude": {
 							"type": "number",
 							"description": "longitude"
+						},
+						"streetName":{
+							"type": "string",
+							"description": "Street name"
+						},
+						"streetNumber": {
+							"type": "string",
+							"description": "full address"
+						},
+						"postcode": {
+							"type": "string",
+							"description": "Postal code"
+						},
+						"countryCode": {
+							"type":  "string",
+							"description": "Country Code"
 						}
-					}
-				},
+					},
+          "dependencies": {
+            "latitude": ["longitude"],
+            "longitude": ["latitude"],
+            "postcode": ["streetName", "countryCode"],
+            "streetName": ["postcode", "countryCode"]
+          }
+        },
 				"photo": {
 					"description": "URL for photo of the issue",
 					"type": "string",
 					"format": "uri"
 				}
 			},
-			"required": ["issueName", "description"],
+			"required": ["issueName", "description", "location"],
 			"additionalProperties": false
 		},
 		"issueViewList": {
@@ -95,14 +117,6 @@
 					"type": "string",
 					"format": "uuid"
 				},
-				"longitude": {
-					"description": "latitude of issue",
-					"type": "number"
-				},
-				"latitude": {
-					"description": "longitude of issue",
-					"type": "number"
-				},
 				"photo": {
 					"description": "Link to photo",
 					"type": "string",
@@ -125,6 +139,42 @@
 					"description": "Date the issue was last updated",
 					"type": "string",
 					"format": "date"
+				},
+				"location": {
+					"type": "object",
+					"properties": {
+						"longitude": {
+							"description": "latitude of issue",
+							"type": "number"
+						},
+						"latitude": {
+							"description": "longitude of issue",
+							"type": "number"
+						},
+						"streetName": {
+							"description": "location streetname",
+							"type": "string"
+						},
+						"countryCode": {
+							"description": "location country code",
+							"type": "string"
+						}
+						,
+						"postcode": {
+							"description": "location postcode",
+							"type": "string"
+						}
+						,
+						"county": {
+							"description": "location county",
+							"type": "string"
+						}
+						,
+						"city": {
+							"description": "location city",
+							"type": "string"
+						}
+					}
 				},
 				"links": {
 					"description": "Link to the issue",
@@ -267,15 +317,20 @@
 					"type": "string",
 					"format": "uuid"
 				},
-				"longitude": {
-					"description": "longitude of issue",
-					"type": "number"
+				"location": {
+					"type":"object",
+					"properties": {
+						"longitude": {
+							"description": "longitude of issue",
+							"type": "number"
+						},
+						"latitude": {
+							"description": "latitude of issue",
+							"type": "number"
+						}
+					}
 				},
-				"latitude": {
-					"description": "latitude of issue",
-					"type": "number"
-				},
-				"difference": {
+				"differenceInMetres": {
 					"description": "difference in metres",
 					"type": "number"
 				},

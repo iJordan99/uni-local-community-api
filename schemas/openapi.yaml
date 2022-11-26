@@ -229,7 +229,7 @@ paths:
       responses:
         '201':
           description: User created
-        '400':
+        '409':
           description: User already exists
     get:
       tags:
@@ -252,7 +252,7 @@ paths:
         - Users
       summary: Update user details and credentials
       parameters:
-        - name: id
+        - name: username
           in: path
           required: true
           schema:
@@ -270,12 +270,14 @@ paths:
           description: User updated
         '403':
           description: Forbidden
+        '401':
+          description: Unauthorized
     delete:
       tags:
         - Users
       summary: Delete a user
       parameters:
-        - name: id
+        - name: name
           in: path
           required: true
           schema:
@@ -286,6 +288,8 @@ paths:
           description: User deleted
         '403':
           description: Forbidden
+        '401':
+          description: Unauthorized
 
 
          

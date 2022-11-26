@@ -32,16 +32,12 @@ async function getInfo(ctx){
   } else {
     const users = await _user.findWithout(attributes);
     const permission = can.getAll(requester);
-    if(!permission.granted){
-      ctx.status = 403;
+    if(users){
+      ctx.body = users;
+      ctx.status = 200;
     } else {
-      if(users){
-        ctx.body = users;
-        ctx.status = 200;
-      } else {
-        console.error('No users found');
-        ctx.status = 404;
-      }
+      console.error('No users found');
+      ctx.status = 404;
     }
   }
 }
@@ -63,7 +59,7 @@ async function createUser(ctx){
     ctx.body = body;
     ctx.status = 201;
   } else {
-    ctx.status = 400;
+    ctx.status = 409;
     console.error(`${body.username} already exists`);
   }
 }
@@ -95,11 +91,11 @@ async function deleteUser(ctx){
   requester = await _user.findWithRole(requester.username)
 
   const permission = can.delete(requester,user);
-  console.log(permission.granted);
+
   if(!permission.granted){
     ctx.status = 403;
   } else {
-    await _user.delete(user);
+    await _user.delete(user.username);
     ctx.status = 204;
   }
 }

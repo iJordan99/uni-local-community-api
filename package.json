@@ -4,9 +4,14 @@
   "description": "API for a local community",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "db:migrate": "npx sequelize-cli db:migrate",
-    "db:seed": "npx sequelize-cli db:seed:all"
+    "db:seed": "npx sequelize-cli db:seed:all",
+    "test": "cross-env DB_DATABASE=test_db jest --testTimeout=10000",
+    "test:watch": "cross-env DB_DATABASE=test_db jest --watch",
+    "testDB:drop": "mysql --user=root --password=codio -e 'DROP DATABASE test_db'",
+    "testDB:create": "mysql --user=root --password=codio -e 'CREATE DATABASE test_db'",
+    "testDB:migrate": "mysqldump --user=root --password=codio local_community | mysql --user=root --password=codio test_db",
+    "pretest": "npm run testDB:drop && npm run testDB:create && npm run testDB:migrate"
   },
   "repository": {
     "type": "git",
@@ -38,6 +43,9 @@
     "sqlite3": "^5.1.2"
   },
   "devDependencies": {
-    "sequelize-cli": "^6.5.1"
+    "cross-env": "^7.0.3",
+    "jest": "^29.3.1",
+    "sequelize-cli": "^6.5.1",
+    "supertest": "^6.3.1"
   }
 }

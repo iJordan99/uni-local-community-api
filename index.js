@@ -1,19 +1,7 @@
-const koa = require('koa');
-const cors = require('@koa/cors')
-require('dotenv').config()
-const app = new koa();
-
-
-app.use(cors());
-
-const special = require('./routes/special.js');
-const user = require('./routes/user.js');
-const issue = require('./routes/issue.js');
-
-app.use(special.routes());
-app.use(user.routes());
-app.use(issue.routes());
-
-let port = process.env.PORT ;
+const app = require('./app');
+let port = process.env.PORT;
 
 app.listen(port);
+
+console.log(`API running on the following port ${port}`);
+

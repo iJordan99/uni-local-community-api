@@ -14,10 +14,11 @@ describe('Post new user',() => {
     })
     expect(res.statusCode).toEqual(201)
     expect(res.created).toEqual(true)
+    expect(res.header).toHaveProperty('content-type', 'application/json; charset=utf-8')
   })
 })
 
-describe('Post new user',() => {
+describe('Post duplicate user',() => {
   it('shouldnt create duplicate user', async () => {
     const res = await request(app.callback())
     .post('/api/v1/users')
@@ -30,10 +31,11 @@ describe('Post new user',() => {
     })
     expect(res.statusCode).toEqual(409)
     expect(res.created).toEqual(false)
+    expect(res.header).toHaveProperty('content-type', 'text/plain; charset=utf-8')
   })
 })
 
-describe('Post new user',() => {
+describe('Post new user with missing information',() => {
   it('should result in a schema error', async () => {
     const res = await request(app.callback())
     .post('/api/v1/users')
@@ -54,6 +56,7 @@ describe('Get user details no credentials',() => {
     const res = await request(app.callback())
     .get('/api/v1/users/')
     expect(res.statusCode).toEqual(401)
+    expect(res.header).toHaveProperty('content-type', 'text/plain; charset=utf-8')
   })
 })
 
@@ -63,6 +66,7 @@ describe('Get user details with wrong credentials',() => {
     .get('/api/v1/users/')
     .auth('jordan','passwor_wrong')
     expect(res.statusCode).toEqual(401)
+    expect(res.header).toHaveProperty('content-type', 'text/plain; charset=utf-8')
   })
 })
 
@@ -72,6 +76,7 @@ describe('Get user details with correct credentials',() => {
     .get('/api/v1/users/')
     .auth('jordan','password')
     expect(res.statusCode).toEqual(200)
+    expect(res.header).toHaveProperty('content-type', 'application/json; charset=utf-8')
   })
 })
 
@@ -83,6 +88,7 @@ describe('edit user without credentials',() => {
       username: 'jordan22'
     })
     expect(res.statusCode).toEqual(401)
+    expect(res.header).toHaveProperty('content-type', 'text/plain; charset=utf-8')
   })
 })
 
@@ -95,6 +101,7 @@ describe('edit other user',() => {
     })
     .auth('jordan1', 'password')
     expect(res.statusCode).toEqual(403)
+    expect(res.header).toHaveProperty('content-type', 'text/plain; charset=utf-8')
   })
 })
 
@@ -116,6 +123,7 @@ describe('delete another user', () => {
     .delete('/api/v1/users/jordan22')
     .auth('jordan1','password')
     expect(403)
+    expect(res.header).toHaveProperty('content-type', 'text/plain; charset=utf-8')
   })
 })
 
@@ -125,6 +133,7 @@ describe('delete user without credentials', () => {
     const res = await request(app.callback())
     .delete('/api/v1/users/jordan22')
     expect(403)
+    expect(res.header).toHaveProperty('content-type', 'text/plain; charset=utf-8')
   })
 })
 

@@ -53,23 +53,15 @@ async function byLocation(ctx){
   }
   
   issues.map((issue) => {
-    let distance = getDistance(
+    if(issue.latitude && issue.longitude){
+      let distance = getDistance(
       { latitude: latitude, longitude: longitude},
-      { latitude: issue.latitude, longitude: issue.longitude}, 1
-    );
-    
-    issue.location = {
-      "longitude": issue.longitude,
-      "latitude": issue.latitude
-    };
-
-    issue.differenceInMetres = distance;
-    issue.links = getLinks(ctx,issue)
-
-    delete(issue.longitude);
-    delete(issue.latitude);
+      { latitude: issue.latitude, longitude: issue.longitude}, 1);
+      issue.differenceInMetres = distance;
+      issue.links = getLinks(ctx,issue)
+    }
   });
-
+  
   issues.sort((a,b) => a.difference - b.difference);
   ctx.body = issues;
   ctx.status = 200;
@@ -198,6 +190,7 @@ async function issueByUUID(ctx){
   
   if(issue){
     const permission = can.getById(requester, issue);
+
     if(!permission.granted){
       ctx.status = 403;
     } else {

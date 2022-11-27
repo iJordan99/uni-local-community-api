@@ -44,6 +44,8 @@ paths:
                 $ref: ./issue.json#/definitions/issueCreated
         '409':
           description: User attempting to create a duplicate
+        '401':
+          description: Unauthorized
     get:
       tags:
         - Issues
@@ -84,6 +86,8 @@ paths:
           description: Not found
         '403':
           description: Non admin users can only view their own submissions
+        '401':  
+          description: Unauthorized
     put:
       tags: 
         - Issues
@@ -116,6 +120,8 @@ paths:
           description: Non admin users can only update to a fixed status of their own issue
         '404':
           description: Not found
+        '401':
+          description: Unauthorized
     delete:
       tags:
         - Issues
@@ -137,6 +143,8 @@ paths:
           description: Forbidden - Users can only delete their own 
         '404':
           description: Not found
+        '401':
+          description: Unauthorized
   /user/{username}:
     get:
       tags: 
@@ -162,6 +170,8 @@ paths:
           description: Not found
         '403':
           description: Non admin users can only view their own submissions
+        '401':
+          description: Unauthorized
   /status/{status}:
     get:
       tags:
@@ -186,7 +196,9 @@ paths:
         '403':
           description: Admin access only
         '404':
-          description: Not found    
+          description: Not found   
+        '401':
+          description: Unauthorized
   /location/{longitude}/{latitude}:
     get:
       tags:
@@ -214,6 +226,8 @@ paths:
             application/json:
               schema:
                 $ref: ./issue.json#/definitions/locationSort
+        '401':
+          description: Unauthorized
   /users:
     post:
       tags:
@@ -246,6 +260,8 @@ paths:
                 $ref: ./user.json#/definitions/userList   
         '404':
           description: No users found
+        '401':
+          description: Unauthorized
   /users/{username}:
     put:
       tags:

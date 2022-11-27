@@ -145,34 +145,7 @@ paths:
           description: Not found
         '401':
           description: Unauthorized
-  /user/{username}:
-    get:
-      tags: 
-        - Issues
-      summary: Filter issues by user
-      description:
-        Returns a list of issues created by a specific user
-      parameters:
-        - name: username
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Username
-      responses:
-        '200':
-          description: View of issue
-          content:
-            application/json:
-              schema:
-                $ref: ./issue.json#/definitions/issueList
-        '404':
-          description: Not found
-        '403':
-          description: Non admin users can only view their own submissions
-        '401':
-          description: Unauthorized
-  /status/{status}:
+  /issues?status&limit:
     get:
       tags:
         - Issues
@@ -181,11 +154,18 @@ paths:
         Returns a list of issues specific to one status
       parameters:
         - name: status
-          in: path
+          in: query
           required: true
           schema:
             type: string
           description: Status
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: number
+            default: 50
+          description: Max number of issues
       responses:
         '200':
           description: View of filtered issues
@@ -193,8 +173,6 @@ paths:
             application/json:
               schema:
                 $ref: ./issue.json#/definitions/statusFilter
-        '403':
-          description: Admin access only
         '404':
           description: Not found   
         '401':
@@ -203,9 +181,9 @@ paths:
     get:
       tags:
         - Issues
-      summary: List and sort issues by location
+      summary: Nearest Issues
       description:
-        Returns a list of issues sorted by closest 
+        Returns a list of issues sorted by the closest 
       parameters:
         - name: longitude
           in: path

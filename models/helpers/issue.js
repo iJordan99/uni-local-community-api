@@ -68,39 +68,76 @@ const create = async (data,user) => {
 
 };
 
-const findAllByUser = (userId, attributes) => {
+const findAllByUser = (userId, attributes,filters) => {
 
   if(!attributes){
     let attributes;
   }
+  
+  if(!filters.limit){
+    filters.limit = 50;
+  }
 
-  return issue.findAll({
-    where: {
-      userId: userId
-    },
-    attributes: {exclude: attributes},
-    raw: true,
-    nest: true
-  });
-};
+  if(!filters.status){
+    return issue.findAll({
+      limit: parseInt(filters.limit),
+      where: {
+        userId: userId
+      },
+      attributes: {exclude: attributes},
+      raw: true,
+      nest: true
+    });
+  } else {
+    return issue.findAll({
+      limit: parseInt(filters.limit),
+      where: {
+        userId: userId,
+        status: filters.status
+      },
+      attributes: {exclude: attributes},
+      raw: true,
+      nest: true
+    });
+  }
+}
+
+const getAll = (attributes,filters) => {
+  if(!attributes){
+    let attributes;
+  }
+
+  if(!filters.limit){
+    filters.limit = 50;
+  }
+
+  if(!filters.status){
+    return issue.findAll({
+      limit: parseInt(filters.limit),
+      attributes: {exclude: attributes},
+      raw: true,
+      nest: true
+    });
+  } else {
+    return issue.findAll({
+      limit: parseInt(filters.limit),
+      where: {
+        status: filters.status
+      },
+      attributes: {exclude: attributes},
+      raw: true,
+      nest: true
+    });
+  }
+  
+}
+  
 
 const updateStatus = (uuid, data) => {
   return issue.update({ status: data.status, updatedAt: new Date() },  
     {where: { uuid: uuid}}
   );
 };
-
-const getAll = (attributes) => {
-  if(!attributes){
-    let attributes;
-  }
-
-  return issue.findAll({
-    attributes: {exclude: attributes},
-    raw: true,
-    nest: true
-  });
-}
 
 const deleteIssue = (uuid) => {
   return issue.destroy({

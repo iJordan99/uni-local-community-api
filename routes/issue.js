@@ -11,7 +11,11 @@ const _role = require('../models/helpers/role.js');
 const _user = require('../models/helpers/user.js');
 const _tomTom = require('../models/helpers/tomTom.js');
 
+//middleware
 const { validateIssue, validateIssueStatus } = require('../controllers/validation.js');
+
+const etag = require('etag');
+const { checkHeaders } = require('./helpers/conditional.js');
 
 const { getDistance } = require('geolib');
 
@@ -19,15 +23,12 @@ const { getDistance } = require('geolib');
 const tomtom = require('../integrations/tomtom.js');
 
 router.get('issues','/', auth, myIssues);
+
 router.post('issues', '/', auth, bodyParser(), validateIssue ,createIssue);
 
 router.get('issueById','/:uuid', auth, issueByUUID);
 router.delete('issueById','/:uuid', auth, deleteIssue);
 router.put('statusUpdate','/:uuid', auth, bodyParser(), validateIssueStatus, updateStatus);
-
-router.get('statusFilter', '/status/:status', auth, getByStatus);
-
-router.get('userFilter','/user/:username', auth, getByUser);
 
 router.get('location', '/location/:longitude/:latitude', auth, byLocation);
 
@@ -91,24 +92,33 @@ async function deleteIssue(ctx){
 }
 
 async function myIssues(ctx){
+  let filters = ctx.query;
   let requester = ctx.state.user;
   let role = await _role.getRole(requester.roleId);
   let issues;
-  let exclude = ['password', 'userId', 'id', 'description', 'photo', 'createdAt', 'updatedAt', 'longitude', 'latitude'];
+  let exclude = ['password', 'userId', 'id', 'description', 'photo', 'createdAt', 'updatedAt', 'longitude', 'latitude', 'tomTomId'];
 
   if(role.role == 'user'){
-    issues = await _issue.findAllByUser(requester.id, exclude);
+    issues = await _issue.findAllByUser(requester.id, exclude,filters);
   } else {
-    issues = await _issue.getAll(exclude);
+    issues = await _issue.getAll(exclude,filters);
   }
 
   issues.map((issue) => {
     issue.links = getLinks(ctx,issue);
   });
   
-  ctx.body = issues;
-  ctx.status = 200;
-  ctx.type = 'application/json';
+  //double check for lists of stuff if you should just use etag since the body will change when an individual issue is edited
+  let updated;
+  const Etag = etag(JSON.stringify(issues));
+  const is304 = checkHeaders(ctx,updated,Etag);
+  
+  if(!is304){
+    ctx.body = issues;
+    ctx.set('Etag', Etag);
+    ctx.status = 200;
+    ctx.type = 'application/json';
+  }else { ctx.status = 304; }
 }
 
 async function updateStatus(ctx){
@@ -152,34 +162,7 @@ async function updateStatus(ctx){
   } 
 }
 
-async function getByStatus(ctx){
-  let requester = ctx.state.user;
-  
-  let exclude = ['updatedAt', 'userId', 'photo', 'description', 'reportedBy', 'id', 'longitude', 'latitude'];
-  const issues = await _issue.getByStatus(ctx.params.status,exclude);
-  requester = await _role.getRole(requester.roleId);  
-  const permission = can.getByStatus(requester);
-
-  if(!permission.granted){
-    ctx.status = 403;
-  } else {
-    if(issues != ''){
-      issues.map((issue) => {
-        const date = new Date(issue.createdAt).toLocaleDateString();
-        issue.createdAt = date;
-        issue.links = getLinks(ctx,issue);
-      });
-
-      ctx.body = issues;
-      ctx.status = 200;
-      ctx.type = 'application/json';
-    } else {
-      ctx.status = 404;
-    }   
-  }
-}
-
-async function issueByUUID(ctx){ 
+async function issueByUUID(ctx,next){ 
   let requester = ctx.state.user;
   let requesterRole = await _role.getRole(requester.roleId);  
   requester.role = requesterRole.role;
@@ -205,6 +188,7 @@ async function issueByUUID(ctx){
       };
       let date = new Date(issue.createdAt).toLocaleDateString();
       issue.createdAt = date;
+      const updated = issue.updatedAt;
       date = new Date(issue.updatedAt).toLocaleDateString();
       issue.updatedAt = date;
 
@@ -214,9 +198,17 @@ async function issueByUUID(ctx){
       delete(issue.longitude);
       delete(issue.latitude);
       delete(issue.tomTomId);
-      ctx.body = issue;
-      ctx.status = 200;
-      ctx.type = 'application/json';
+
+      const Etag = etag(JSON.stringify(issue));
+      const is304 = checkHeaders(ctx,updated,Etag);
+      
+      if(!is304){
+        ctx.body = issue;
+        ctx.set('Last-Modified', new Date(updated).toUTCString())
+        ctx.set('Etag', Etag);
+        ctx.status = 200;
+        ctx.type = 'application/json';
+      }else { ctx.status = 304; }
     }
   } else{
     ctx.status = 404;

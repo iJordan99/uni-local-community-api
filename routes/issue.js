@@ -37,6 +37,7 @@ const getLinks = (ctx,issue) => ({
 })
 
 async function byLocation(ctx){
+  let filters = ctx.query;
   let params = ctx.params;
   const longitude = params.longitude;
   const latitude = params.latitude;
@@ -44,13 +45,17 @@ async function byLocation(ctx){
   let requester = ctx.state.user;
   let role = await _role.getRole(requester.roleId);
 
-  let exclude = ['password','userId', 'id', 'description', 'photo', 'createdAt', 'updatedAt', 'status', 'issueName'];
+  let exclude = ['password','userId', 'id', 'description', 'photo', 'createdAt', 'updatedAt', 'status', 'issueName', 'tomTomId'];
 
   let issues;
   if(role.role == 'user'){
-    issues = await _issue.findAllByUser(requester.id,exclude);
+    issues = await _issue.findAllByUser(requester.id, exclude,filters);
   } else {
-    issues = await _issue.getAll(exclude)
+    issues = await _issue.getAll(exclude,filters);
+  }
+  
+  if(!issues.length > 0){
+    ctx.status = 404;
   }
   
   issues.map((issue) => {
@@ -64,9 +69,17 @@ async function byLocation(ctx){
   });
   
   issues.sort((a,b) => a.difference - b.difference);
-  ctx.body = issues;
-  ctx.status = 200;
-  ctx.type = 'application/json';
+
+  let updated;
+  const Etag = etag(JSON.stringify(issues));
+  const is304 = checkHeaders(ctx,updated,Etag);
+  
+  if(!is304){
+    ctx.body = issues;
+    ctx.set('Etag', Etag);
+    ctx.status = 200;
+    ctx.type = 'application/json';
+  }else { ctx.status = 304; }
 }
 
 async function deleteIssue(ctx){
@@ -102,6 +115,10 @@ async function myIssues(ctx){
     issues = await _issue.findAllByUser(requester.id, exclude,filters);
   } else {
     issues = await _issue.getAll(exclude,filters);
+  }
+
+  if(!issues.length > 0){
+    ctx.status = 404;
   }
 
   issues.map((issue) => {

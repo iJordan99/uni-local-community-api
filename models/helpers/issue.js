@@ -78,28 +78,46 @@ const findAllByUser = (userId, attributes,filters) => {
     filters.limit = 50;
   }
 
+  if(!filters.page){
+    filters.page = 1;
+  }
+
   if(!filters.status){
     return issue.findAll({
-      limit: parseInt(filters.limit),
       where: {
         userId: userId
       },
-      attributes: {exclude: attributes},
+      ...paginate(
+        parseInt(filters.page), parseInt(filters.limit)
+      ),
       raw: true,
-      nest: true
-    });
+      nest: true,
+      attributes: {exclude: attributes}
+    })
   } else {
     return issue.findAll({
-      limit: parseInt(filters.limit),
       where: {
-        userId: userId,
-        status: filters.status
+        status: filters.status,
+        userId: userId
       },
-      attributes: {exclude: attributes},
+      ...paginate(
+        parseInt(filters.page), parseInt(filters.limit)
+      ),
       raw: true,
-      nest: true
-    });
+      nest: true,
+      attributes: {exclude: attributes}
+    })
   }
+}
+
+const paginate = (page, limit) => {
+  let offset = page * limit;
+  offset =  offset - limit;
+
+  return {
+    offset,
+    limit,
+  };
 }
 
 const getAll = (attributes,filters) => {
@@ -111,27 +129,33 @@ const getAll = (attributes,filters) => {
     filters.limit = 50;
   }
 
+  if(!filters.page){
+    filters.page = 1;
+  }
+
   if(!filters.status){
     return issue.findAll({
-      limit: parseInt(filters.limit),
-      attributes: {exclude: attributes},
+      ...paginate(
+        parseInt(filters.page), parseInt(filters.limit)
+      ),
       raw: true,
-      nest: true
-    });
+      nest: true,
+      attributes: {exclude: attributes}
+    })
   } else {
     return issue.findAll({
-      limit: parseInt(filters.limit),
       where: {
         status: filters.status
       },
-      attributes: {exclude: attributes},
+      ...paginate(
+        parseInt(filters.page), parseInt(filters.limit)
+      ),
       raw: true,
-      nest: true
-    });
+      nest: true,
+      attributes: {exclude: attributes}
+    })
   }
-  
 }
-  
 
 const updateStatus = (uuid, data) => {
   return issue.update({ status: data.status, updatedAt: new Date() },  

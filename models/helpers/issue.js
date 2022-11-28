@@ -11,17 +11,6 @@ const getByStatus = (reqStatus, attributes) => {
   });
 };
 
-const getById = (id) => {
-  return issue.findOne({
-    where: {
-      id: id,
-    },
-    raw: true,
-    nest: true,
-    attributes: {exclude: ['updatedAt', 'id', 'userID']}
-  });
-};
-
 const getByUUID = (id,attributes) => {
 
   if(!attributes){
@@ -67,6 +56,52 @@ const create = async (data,user) => {
   })
 
 };
+
+const findAllUserByStatus = (userId,attributes,status) => {
+  if(!attributes){
+    let attributes;
+  }
+
+  if(status){
+    return issue.findAll({
+      where:{
+        userId: userId,
+        status: status
+      },
+      raw: true,
+      nest: true
+    });
+  } else {
+    return issue.findAll({
+      where:{
+        userId: userId
+      },
+      raw: true,
+      nest: true
+    });
+  }
+}
+
+const getOnlyStatus = (attributes,status) => {
+  if(!attributes){
+    let attributes;
+  }
+
+  if(status){
+    return issue.findAll({
+      where:{
+        status: status
+      },
+      raw: true,
+      nest: true
+    });
+  } else {
+    return issue.findAll({
+      raw: true,
+      nest: true
+    });
+  }
+}
 
 const findAllByUser = (userId, attributes,filters) => {
 
@@ -190,7 +225,6 @@ const findByLocation = (location) => (
 )
 
 module.exports.getByStatus = getByStatus;
-module.exports.getById = getById;
 module.exports.getByUUID = getByUUID;
 module.exports.create = create;
 module.exports.findAllByUser = findAllByUser;
@@ -199,3 +233,5 @@ module.exports.getAll = getAll;
 module.exports.delete = deleteIssue;
 module.exports.exists = exists;
 module.exports.findByLocation = findByLocation;
+module.exports.findAllUserByStatus = findAllUserByStatus
+module.exports.getOnlyStatus = getOnlyStatus

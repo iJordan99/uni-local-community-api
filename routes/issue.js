@@ -36,6 +36,14 @@ const getLinks = (ctx,issue) => ({
   self: ctx.protocol + 's://' + ctx.host + router.url('issueById', issue.uuid)
 })
 
+async function getPages(filters,maxPage,ctx,next){
+  if(filters.page > maxPage){
+    ctx.status = 404;
+    return next;
+  } else{ return true; }
+}
+
+
 async function byLocation(ctx){
   let filters = ctx.query;
   let params = ctx.params;
@@ -57,7 +65,7 @@ async function byLocation(ctx){
   if(!issues.length > 0){
     ctx.status = 404;
   }
-  
+
   issues.map((issue) => {
     if(issue.latitude && issue.longitude){
       let distance = getDistance(
@@ -104,38 +112,56 @@ async function deleteIssue(ctx){
   }
 }
 
-async function myIssues(ctx){
+async function myIssues(ctx,next){
   let filters = ctx.query;
   let requester = ctx.state.user;
   let role = await _role.getRole(requester.roleId);
   let issues;
   let exclude = ['password', 'userId', 'id', 'description', 'photo', 'createdAt', 'updatedAt', 'longitude', 'latitude', 'tomTomId'];
+  
+  let maxPage;
 
   if(role.role == 'user'){
     issues = await _issue.findAllByUser(requester.id, exclude,filters);
+    maxPage = await _issue.findAllUserByStatus(requester.id,exclude,filters.status)
   } else {
     issues = await _issue.getAll(exclude,filters);
-  }
-
-  if(!issues.length > 0){
-    ctx.status = 404;
+    maxPage = await _issue.getOnlyStatus(exclude,filters.status);
   }
 
   issues.map((issue) => {
     issue.links = getLinks(ctx,issue);
   });
   
-  //double check for lists of stuff if you should just use etag since the body will change when an individual issue is edited
-  let updated;
-  const Etag = etag(JSON.stringify(issues));
-  const is304 = checkHeaders(ctx,updated,Etag);
-  
-  if(!is304){
-    ctx.body = issues;
-    ctx.set('Etag', Etag);
-    ctx.status = 200;
-    ctx.type = 'application/json';
-  }else { ctx.status = 304; }
+  let count = maxPage.length;
+  maxPage = Math.ceil(count / parseInt(filters.limit));
+  let pages = await getPages(filters,maxPage,ctx)
+
+  if(pages){
+    let statusString = filters.status ? `status=${filters.status}&` : '';
+    let pageString = filters.page ? `page=${parseInt(filters.page)+1}&` : '';
+    let limitString = filters.limit ? `limit=${parseInt(filters.limit)}` : '';
+
+    let url = filters.status ? status=`${filters.status}&` : '' + filters.page ? `page=${parseInt(filters.page)+1}` : '';
+    url = url + filters.limit ? `limit=${parseInt(filters.limit)}` : '';
+    if(parseInt(filters.page) != maxPage){
+      links = {
+        next: ctx.protocol + 's://' + ctx.host + router.url('issues') + '?' + statusString + pageString + limitString
+      }
+
+      issues = issues.concat(links);
+    }
+    let updated;
+    const Etag = etag(JSON.stringify(issues));
+    const is304 = checkHeaders(ctx,updated,Etag);
+
+    if(!is304){
+      ctx.body = issues;
+      ctx.set('Etag', Etag);
+      ctx.status = 200;
+      ctx.type = 'application/json';
+    }else { ctx.status = 304; }
+  }
 }
 
 async function updateStatus(ctx){
@@ -299,38 +325,38 @@ async function createIssue(ctx){
   }
 }
 
-async function getByUser(ctx){
-  let requester = ctx.state.user;  
-  let requesterRole = await _role.getRole(requester.roleId);
-  requester.role = requesterRole.role;
+// async function getByUser(ctx){
+//   let requester = ctx.state.user;  
+//   let requesterRole = await _role.getRole(requester.roleId);
+//   requester.role = requesterRole.role;
   
-  let user = ctx.params.username; 
-  user = await _user.findByUsername(user);
+//   let user = ctx.params.username; 
+//   user = await _user.findByUsername(user);
 
-  let exclude = ['password', 'userId', 'id', 'description', 'photo', 'createdAt', 'updatedAt', 'longitude', 'latitude'];
+//   let exclude = ['password', 'userId', 'id', 'description', 'photo', 'createdAt', 'updatedAt', 'longitude', 'latitude'];
 
-  if(!user){
-    ctx.status = 404;
-  } else {
-    const permission = can.getByUser(requester, user)
-    const issues = await _issue.findAllByUser(user.id,exclude);
+//   if(!user){
+//     ctx.status = 404;
+//   } else {
+//     const permission = can.getByUser(requester, user)
+//     const issues = await _issue.findAllByUser(user.id,exclude);
     
-    if(!permission.granted){
-      ctx.status = 403;
-    } else {
-      if(issues){
-        issues.map((issue) => {
-          issue.links = getLinks(ctx,issue);
-        });
-        ctx.body = issues;
-        ctx.status = 200;
-        ctx.type = 'application/json';
-      } else {
-        ctx.status = 404;
-      }
-    }
-  } 
-}
+//     if(!permission.granted){
+//       ctx.status = 403;
+//     } else {
+//       if(issues){
+//         issues.map((issue) => {
+//           issue.links = getLinks(ctx,issue);
+//         });
+//         ctx.body = issues;
+//         ctx.status = 200;
+//         ctx.type = 'application/json';
+//       } else {
+//         ctx.status = 404;
+//       }
+//     }
+//   } 
+// }
 
 
 

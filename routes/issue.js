@@ -278,7 +278,7 @@ async function issueByUUID(ctx,next){
   }
 }
 
-async function createIssue(ctx){
+async function createIssue(ctx,next){
   const data = ctx.request.body;
 
   let user = ctx.state.user;
@@ -312,11 +312,17 @@ async function createIssue(ctx){
         "postcode": data.location.postcode
       }];
 
-      tomTomData = await apiCallMethod(apiCallParams);
+      tomTomData = await apiCallMethod(apiCallParams,ctx);
+    }
+    
+    tomTomRecord = await _tomTom.findByLongLat(tomTomData.position);
+    
+    if(tomTomData.status === 400){
+      ctx.status = 400;
+      ctx.body = tomTomData.message;
+      return next;
     }
 
-    tomTomRecord = await _tomTom.findByLongLat(tomTomData.position);
-  
     if(!tomTomRecord){
       const newTomTomRecord = await _tomTom.createRecord(tomTomData);
 

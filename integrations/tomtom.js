@@ -11,7 +11,17 @@ const config = {
 
 const getReverseGeo = async (position) => {  
   config.url = `${base}reverseGeocode/${position}.json?key=${key}`;
-  result = await axios(config);
+  try{
+    result = await axios(config);
+  } catch(err) {
+
+    let message = {
+      status: err.response.data.httpStatusCode,
+      message: err.response.data.error
+    }
+    return message;
+  }
+  
   if(result.status == 200 && result.headers['tracking-id']){
     result = {
       address: result.data.addresses[0].address,

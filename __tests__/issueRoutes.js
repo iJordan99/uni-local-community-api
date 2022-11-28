@@ -37,6 +37,25 @@ describe('Post new issue',() => {
   })
 })
 
+
+describe('Post new issue with out of range long and lat',() => {
+  it('should 400', async () => {
+    const res = await request(app.callback())
+    .post(prefix)
+    .send({
+      issueName: 'test issue 1',
+      description: 'random test description',
+      location: {
+        longitude: 444444,
+        latitude: 44444
+      }
+    })
+    .auth('jordan1', 'password')
+    expect(res.statusCode).toEqual(400)
+    expect(res.header).toHaveProperty('content-type', 'text/plain; charset=utf-8')
+  })
+})
+
 describe('Post duplicate issue',() => {
   it('should 409', async () => {
     const res = await request(app.callback())

@@ -184,7 +184,7 @@ paths:
           description: Not found
         '401':
           description: Unauthorized
-  /issues/location/{longitude}/{latitude}?status=?&limit=&page=:
+  /issues/near/location?longitude=&latitude=&=&status=?&limit=&page=:
     get:
       tags:
         - Issues
@@ -193,13 +193,13 @@ paths:
         Returns a list of issues sorted by the closest 
       parameters:
         - name: longitude
-          in: path
+          in: query
           required: true
           schema: 
             type: number
           description: longitude
         - name: latitude
-          in: path
+          in: query
           required: true
           schema: 
             type: number

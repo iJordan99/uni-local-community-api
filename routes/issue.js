@@ -30,7 +30,7 @@ router.get('issueById','/:uuid', auth, issueByUUID);
 router.delete('issueById','/:uuid', auth, deleteIssue);
 router.put('statusUpdate','/:uuid', auth, bodyParser(), validateIssueStatus, updateStatus);
 
-router.get('location', '/location/:longitude/:latitude', auth, byLocation);
+router.get('location', '/near/location', auth, byLocation);
 
 const getLinks = (ctx,issue) => ({
   self: ctx.protocol + 's://' + ctx.host + router.url('issueById', issue.uuid)
@@ -44,10 +44,14 @@ async function getPages(filters,maxPage,ctx,next){
 }
 
 async function byLocation(ctx){
-  let filters = ctx.query;
-  let params = ctx.params;
-  const longitude = params.longitude;
-  const latitude = params.latitude;
+  let query = ctx.query; 
+  const filters = {
+    status: query.status,
+    limit: query.limit,
+    page: query.page
+  }
+  const longitude = query.longitude;
+  const latitude = query.latitude;
 
   let requester = ctx.state.user;
   let role = await _role.getRole(requester.roleId);

@@ -12,11 +12,28 @@ info:
 servers:
   - url: 'https://disneysummer-basilhazard-3000.codio-box.uk/api/v1'
     description: Dev server
+components:
+  responses:
+    UnauthorizedError:
+      description: Authentication information is mising or invalid
+      headers:
+        WWW_Authenticate:
+  securitySchemes:
+    basicAuth:
+      type: https
+      schema: 
+    bearerAuth:
+      type: https
+      schema: bearer
+      bearerFormat: JWT
 tags: 
   - name: Issues
     description: API endpoints for performing CRUD operations on issues.
   - name: Users
     description: API endpoints for user management.
+security:
+  - basicAuth: []
+  - bearerAuth: []
 paths:
   /issues:
     summary: Represents a singular issue
@@ -46,6 +63,7 @@ paths:
           description: User attempting to create a duplicate
         '401':
           description: Unauthorized
+          $ref: '#/components/responses/UnauthorizedError'
     get:
       tags:
         - Issues
@@ -61,7 +79,8 @@ paths:
               schema:
                 $ref: ./issue.json#/definitions/issueList
         '401':
-          description: Only registered users can list issues
+          description: Unauthorized
+          $ref: '#/components/responses/UnauthorizedError'
   /issues?status&limit=&page=:
     get:
       tags:
@@ -101,6 +120,7 @@ paths:
           description: Not found   
         '401':
           description: Unauthorized
+          $ref: '#/components/responses/UnauthorizedError'
   /issues/{uuid}:
     get:
       tags: 
@@ -127,6 +147,7 @@ paths:
           description: Non admin users can only view their own submissions
         '401':  
           description: Unauthorized
+          $ref: '#/components/responses/UnauthorizedError'
     put:
       tags: 
         - Issues
@@ -161,6 +182,7 @@ paths:
           description: Not found
         '401':
           description: Unauthorized
+          $ref: '#/components/responses/UnauthorizedError'
     delete:
       tags:
         - Issues
@@ -184,6 +206,7 @@ paths:
           description: Not found
         '401':
           description: Unauthorized
+          $ref: '#/components/responses/UnauthorizedError'
   /issues/near/location?longitude=&latitude=&=&status=?&limit=&page=:
     get:
       tags:
@@ -233,8 +256,25 @@ paths:
                 $ref: ./issue.json#/definitions/locationSort
         '401':
           description: Unauthorized
+          $ref: '#/components/responses/UnauthorizedError'
         '404': 
           description: Not Found
+  /login:
+    get:
+      tags:
+        - Users
+      summary: JWT Token
+      description: Login via Basic auth to retrieve user JWT token
+      responses:
+        '200':
+          description: 
+          content:
+            application/json:
+              schema:
+                $ref: ./user.json#/definitions/JWT
+        '401':
+          description: Unauthorized
+          $ref: '#/components/responses/UnauthorizedError'
   /users:
     post:
       tags:
@@ -269,6 +309,7 @@ paths:
           description: No users found
         '401':
           description: Unauthorized
+          $ref: '#/components/responses/UnauthorizedError'
   /users/{username}:
     put:
       tags:
@@ -295,6 +336,7 @@ paths:
           description: Forbidden
         '401':
           description: Unauthorized
+          $ref: '#/components/responses/UnauthorizedError'
     delete:
       tags:
         - Users
@@ -313,6 +355,7 @@ paths:
           description: Forbidden
         '401':
           description: Unauthorized
+          $ref: '#/components/responses/UnauthorizedError'
 
 
          

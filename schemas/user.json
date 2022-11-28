@@ -36,6 +36,18 @@
 			"required": ["firstName", "lastName", "username", "email", "password"],
 			"additionalProperties": false
 		},
+		"JWT": {
+			"$id": "#JWT",
+			"title": "User JWT",
+			"description": "Users JWT Token",
+			"type": "object",
+			"properties": {
+				"token" : {
+					"description": "JWT Token",
+					"type": "string"
+				}
+			}
+		},
 		"userUpdate": {
 			"$id": "#userUpdate",
 			"title": "User update data",

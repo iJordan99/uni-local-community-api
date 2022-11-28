@@ -19,7 +19,6 @@ describe('Post new issue without correct credentials',() => {
   })
 })
 
-
 describe('Post new issue',() => {
   it('should 201', async () => {
     const res = await request(app.callback())
@@ -79,6 +78,7 @@ describe('list issues',() => {
     .auth('jordan1', 'password')
     expect(res.statusCode).toEqual(200)
     expect(res.header).toHaveProperty('content-type', 'application/json; charset=utf-8')
+    expect(res.header).toHaveProperty('etag')
   })
 })
 
@@ -90,6 +90,47 @@ describe('list issues without credentials',() => {
     expect(res.header).toHaveProperty('content-type', 'text/plain; charset=utf-8')
   })
 })
+
+describe('list issues with status fixed', () => {
+  it('should 200', async () => {
+    const res = await request(app.callback())
+    .get(`${prefix}?status=fixed`)
+    .auth('jordan1','password')
+    expect(res.statusCode).toEqual(200)
+    expect(res.header).toHaveProperty('etag')
+  })
+})
+
+describe('list issues with status fixed wihtout auth', () => {
+  it('should 200', async () => {
+    const res = await request(app.callback())
+    .get(`${prefix}?status=fixed`)
+    expect(res.statusCode).toEqual(401)
+    expect(res.header).toHaveProperty('content-type', 'text/plain; charset=utf-8')
+  })
+})
+
+describe('list issues with status fixed and limit to 1', () => {
+  it('should 200', async () => {
+    const res = await request(app.callback())
+    .get(`${prefix}?status=fixed&limit=1`)
+    .auth('jordan1','password')
+    expect(res.statusCode).toEqual(200)
+    expect(res.header).toHaveProperty('etag')
+    expect(res.header).toHaveProperty('content-length', '258')
+  })
+})
+
+
+describe('list issues with status fixed and limit to 1 without auth', () => {
+  it('should 401', async () => {
+    const res = await request(app.callback())
+    .get(`${prefix}?status=fixed&limit=1`)
+    expect(res.statusCode).toEqual(401)
+    expect(res.header).toHaveProperty('content-type', 'text/plain; charset=utf-8')
+  })
+})
+
 
 describe('view another users issue without admin role', () => {
   it('should 403', async () => {
@@ -117,6 +158,8 @@ describe('view own issue by uuid', () => {
     .get(`${prefix}/4ac798a4-2d30-4db8-a28e-3990ad26ef17`)
     .auth('jordan1','password')
     expect(res.statusCode).toEqual(200)
+    expect(res.header).toHaveProperty('etag')
+    expect(res.header).toHaveProperty('last-modified')
     expect(res.header).toHaveProperty('content-type', 'application/json; charset=utf-8')
   })
 })
@@ -229,92 +272,53 @@ describe('delete an issue ', () => {
   })
 })
 
-describe('filter issues by user', () => {
-  it('should 200', async () => {
-    const res = await request(app.callback())
-    .get(`${prefix}/user/jordan1`)
-    .auth('jordan1','password')
-    expect(res.statusCode).toEqual(200)
-    expect(res.header).toHaveProperty('content-type', 'application/json; charset=utf-8')
-  })
-})
-
-describe('filter issues by another user', () => {
-  it('should 403', async () => {
-    const res = await request(app.callback())
-    .get(`${prefix}/user/jordan1`)
-    .auth('jordan3','password')
-    expect(res.statusCode).toEqual(403)
-    expect(res.header).toHaveProperty('content-type', 'text/plain; charset=utf-8')
-  })
-})
-
-describe('filter issues by an unknown user', () => {
-  it('should 404', async () => {
-    const res = await request(app.callback())
-    .get(`${prefix}/user/jordan_wrong`)
-    .auth('jordan3','password')
-    expect(res.statusCode).toEqual(404)
-    expect(res.header).toHaveProperty('content-type', 'text/plain; charset=utf-8')
-  })
-})
-
-
-describe('admin filter issues by another user', () => {
-  it('should 200', async () => {
-    const res = await request(app.callback())
-    .get(`${prefix}/user/jordan1`)
-    .auth('admin','password')
-    expect(res.statusCode).toEqual(200)
-    expect(res.header).toHaveProperty('content-type', 'application/json; charset=utf-8')
-  })
-})
-
-describe('admin filter issues by status', () => {
-  it('should 200', async () => {
-    const res = await request(app.callback())
-    .get(`${prefix}/status/new`)
-    .auth('admin','password')
-    expect(res.statusCode).toEqual(200)
-    expect(res.header).toHaveProperty('content-type', 'application/json; charset=utf-8')
-  })
-})
-
-describe('user filter issues by status', () => {
-  it('should 403', async () => {
-    const res = await request(app.callback())
-    .get(`${prefix}/status/new`)
-    .auth('jordan1','password')
-    expect(res.statusCode).toEqual(403)
-    expect(res.header).toHaveProperty('content-type', 'text/plain; charset=utf-8')
-  })
-})
-
-describe('user filter issues by status without credentials', () => {
-  it('should 401', async () => {
-    const res = await request(app.callback())
-    .get(`${prefix}/status/new`)
-    expect(res.statusCode).toEqual(401)
-    expect(res.header).toHaveProperty('content-type', 'text/plain; charset=utf-8')
-  })
-})
-
-
 describe('location filter issues', () => {
   it('should 200', async () => {
     const res = await request(app.callback())
-    .get(`${prefix}/location/52.40496/-3.01683`)
+    .get(`${prefix}/near/location?longitude=52.40496&latitude=-3.01683`)
     .auth('jordan1','password')
     expect(res.statusCode).toEqual(200)
     expect(res.header).toHaveProperty('content-type', 'application/json; charset=utf-8')
+    expect(res.header).toHaveProperty('etag')
   })
 })
 
 describe('location filter issues without credentials', () => {
   it('should 401', async () => {
     const res = await request(app.callback())
-    .get(`${prefix}/location/52.40496/-3.01683`)
+    .get(`${prefix}/near/location?longitude=52.40496&latitude=-3.01683`)
     expect(res.statusCode).toEqual(401)
     expect(res.header).toHaveProperty('content-type', 'text/plain; charset=utf-8')
+  })
+})
+
+describe('location filter issues with credentials and filer by status', () => {
+  it('should 200', async () => {
+    const res = await request(app.callback())
+    .get(`${prefix}/near/location?longitude=52.40496&latitude=-3.01683&status=fixed`)
+    .auth('jordan1','password')
+    expect(res.statusCode).toEqual(200)
+    expect(res.header).toHaveProperty('content-type', 'application/json; charset=utf-8')
+    expect(res.header).toHaveProperty('etag')
+  })
+})
+
+describe('location filter issues without credentials and filer by status', () => {
+  it('should 401', async () => {
+    const res = await request(app.callback())
+    .get(`${prefix}/near/location?longitude=52.40496&latitude=-3.01683&status=fixed`)
+    expect(res.statusCode).toEqual(401)
+    expect(res.header).toHaveProperty('content-type', 'text/plain; charset=utf-8')
+  })
+})
+
+describe('location filter issues with credentials and filer by status & limit to 4', () => {
+  it('should 200', async () => {
+    const res = await request(app.callback())
+    .get(`${prefix}/near/location?longitude=52.40496&latitude=-3.01683&status=fixed&limit=4`)
+    .auth('jordan1','password')
+    expect(res.statusCode).toEqual(200)
+    expect(res.header).toHaveProperty('content-type', 'application/json; charset=utf-8')
+    expect(res.header).toHaveProperty('etag')
   })
 })

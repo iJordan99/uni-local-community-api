@@ -330,6 +330,10 @@
 						}
 					}
 				},
+				"status": {
+					"description": "Issue Status",
+					"type": "string"
+				},
 				"differenceInMetres": {
 					"description": "difference in metres",
 					"type": "number"

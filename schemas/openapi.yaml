@@ -184,7 +184,7 @@ paths:
           description: Not found
         '401':
           description: Unauthorized
-  /location/{longitude}/{latitude}?status=?&limit=&page=:
+  /issues/location/{longitude}/{latitude}?status=?&limit=&page=:
     get:
       tags:
         - Issues

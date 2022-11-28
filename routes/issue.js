@@ -43,7 +43,6 @@ async function getPages(filters,maxPage,ctx,next){
   } else{ return true; }
 }
 
-
 async function byLocation(ctx){
   let filters = ctx.query;
   let params = ctx.params;
@@ -53,41 +52,59 @@ async function byLocation(ctx){
   let requester = ctx.state.user;
   let role = await _role.getRole(requester.roleId);
 
-  let exclude = ['password','userId', 'id', 'description', 'photo', 'createdAt', 'updatedAt', 'status', 'issueName', 'tomTomId'];
+  let exclude = ['password','userId', 'id', 'description', 'photo', 'createdAt', 'updatedAt', 'issueName', 'tomTomId'];
 
   let issues;
+  let maxPage; 
   if(role.role == 'user'){
     issues = await _issue.findAllByUser(requester.id, exclude,filters);
+    maxPage = await _issue.findAllUserByStatus(requester.id,exclude,filters.status)
   } else {
     issues = await _issue.getAll(exclude,filters);
-  }
-  
-  if(!issues.length > 0){
-    ctx.status = 404;
+    maxPage = await _issue.getOnlyStatus(exclude,filters.status);
   }
 
-  issues.map((issue) => {
-    if(issue.latitude && issue.longitude){
-      let distance = getDistance(
-      { latitude: latitude, longitude: longitude},
-      { latitude: issue.latitude, longitude: issue.longitude}, 1);
-      issue.differenceInMetres = distance;
-      issue.links = getLinks(ctx,issue)
+  let count = maxPage.length;
+  maxPage = Math.ceil(count / parseInt(filters.limit));
+  let pages = await getPages(filters,maxPage,ctx)
+
+  if(pages){
+    let statusString = filters.status ? `status=${filters.status}&` : '';
+    let pageString = filters.page ? `page=${parseInt(filters.page)+1}&` : '';
+    let limitString = filters.limit ? `limit=${parseInt(filters.limit)}` : '';
+
+    let url = filters.status ? status=`${filters.status}&` : '' + filters.page ? `page=${parseInt(filters.page)+1}` : '';
+    url = url + filters.limit ? `limit=${parseInt(filters.limit)}` : '';
+
+    issues.map((issue) => {
+      if(issue.latitude && issue.longitude){
+        let distance = getDistance(
+        { latitude: latitude, longitude: longitude},
+        { latitude: issue.latitude, longitude: issue.longitude}, 1);
+        issue.differenceInMetres = distance;
+        issue.links = getLinks(ctx,issue)
+      }
+    });
+
+    if(parseInt(filters.page) != maxPage){
+      links = {
+        next: ctx.protocol + 's://' + ctx.host + `${prefix}/location/${longitude}/${latitude}` + '?' + statusString + pageString + limitString
+      }
+      issues = issues.concat(links);
     }
-  });
-  
-  issues.sort((a,b) => a.difference - b.difference);
+    let updated;
+    const Etag = etag(JSON.stringify(issues));
+    const is304 = checkHeaders(ctx,updated,Etag);
 
-  let updated;
-  const Etag = etag(JSON.stringify(issues));
-  const is304 = checkHeaders(ctx,updated,Etag);
-  
-  if(!is304){
-    ctx.body = issues;
-    ctx.set('Etag', Etag);
-    ctx.status = 200;
-    ctx.type = 'application/json';
-  }else { ctx.status = 304; }
+    issues.sort((a,b) => a.difference - b.difference);
+
+    if(!is304){
+      ctx.body = issues;
+      ctx.set('Etag', Etag);
+      ctx.status = 200;
+      ctx.type = 'application/json';
+    }else { ctx.status = 304; }
+  }
 }
 
 async function deleteIssue(ctx){
@@ -132,7 +149,7 @@ async function myIssues(ctx,next){
   issues.map((issue) => {
     issue.links = getLinks(ctx,issue);
   });
-  
+
   let count = maxPage.length;
   maxPage = Math.ceil(count / parseInt(filters.limit));
   let pages = await getPages(filters,maxPage,ctx)
@@ -148,7 +165,6 @@ async function myIssues(ctx,next){
       links = {
         next: ctx.protocol + 's://' + ctx.host + router.url('issues') + '?' + statusString + pageString + limitString
       }
-
       issues = issues.concat(links);
     }
     let updated;
@@ -276,16 +292,13 @@ async function createIssue(ctx){
     let newIssue;
 
     if(data.location.longitude){
-
       apiCallMethod = tomtom.getReverseGeo;
       apiCallParams = `${data.location.longitude},${data.location.latitude}`;
       tomTomData = await apiCallMethod(apiCallParams);
-
       tomTomData.position = {
           lon: data.location.longitude,
           lat: data.location.latitude
       }
-
     } else {
       apiCallMethod = tomtom.getGeo;
       apiCallParams = [{
@@ -324,40 +337,5 @@ async function createIssue(ctx){
     ctx.status = 409;
   }
 }
-
-// async function getByUser(ctx){
-//   let requester = ctx.state.user;  
-//   let requesterRole = await _role.getRole(requester.roleId);
-//   requester.role = requesterRole.role;
-  
-//   let user = ctx.params.username; 
-//   user = await _user.findByUsername(user);
-
-//   let exclude = ['password', 'userId', 'id', 'description', 'photo', 'createdAt', 'updatedAt', 'longitude', 'latitude'];
-
-//   if(!user){
-//     ctx.status = 404;
-//   } else {
-//     const permission = can.getByUser(requester, user)
-//     const issues = await _issue.findAllByUser(user.id,exclude);
-    
-//     if(!permission.granted){
-//       ctx.status = 403;
-//     } else {
-//       if(issues){
-//         issues.map((issue) => {
-//           issue.links = getLinks(ctx,issue);
-//         });
-//         ctx.body = issues;
-//         ctx.status = 200;
-//         ctx.type = 'application/json';
-//       } else {
-//         ctx.status = 404;
-//       }
-//     }
-//   } 
-// }
-
-
 
 module.exports = router; 

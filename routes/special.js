@@ -6,6 +6,9 @@ const auth = require('../controllers/auth.js');
 const _user = require('../models/helpers/user.js');
 const _role = require('../models/helpers/role.js');
 
+const { checkHeaders } = require('./helpers/conditional.js');
+const etag = require('etag');
+
 const jwt = require('jsonwebtoken');
 const date = new Date();
 const welcomeAPI = (ctx) => { ctx.body = {message: 'Welcome to the API' }};
@@ -24,8 +27,19 @@ async function login(ctx){
   } else {
     token = await createJwt(requester,date);        
   }
-  ctx.body = { token: token}
-  ctx.status = 200;
+  
+  const updated = requester.updatedAt;
+  const Etag = etag(JSON.stringify({ token: token}));
+  const is304 = checkHeaders(ctx,updated,Etag);
+
+  if(!is304){
+    ctx.body = { token: token}
+    ctx.set('Last-Modified', new Date(updated).toUTCString())
+    ctx.set('Last-Modified', new Date(updated).toUTCString())
+    ctx.set('Etag', Etag);
+    ctx.status = 200;
+    ctx.type = 'application/json';
+  }else { ctx.status = 304; }
 }
 
 const jwtVerify = (requester) => {

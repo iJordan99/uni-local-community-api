@@ -52,5 +52,5 @@ jobs:
         with:
           app-name: 'api-local-community'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_7F1D0324B3D7403481E3A2A7FF05B273 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_E651F1BFE63A462FADB32F5BE18724BE }}
           package: .
